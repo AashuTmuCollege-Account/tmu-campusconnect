@@ -199,7 +199,7 @@ A floating graduation cap button 🎓 will appear on the bottom-right corner of 
 
 * **Institution:** [Teerthanker Mahaveer University (TMU)](https://www.tmu.ac.in/), Moradabad, Uttar Pradesh, India - 244001
 * **Faculty:** College of Computing Sciences and Information Technology (CCSIT)
-* **Lead Developer / Author:** **Aashutosh Singh Rawat** (BCA, Enrollment: `ET22BCA102`)
+* **Lead Developer / Author:** **Aashutosh Singh Rawat** (BCA, Enrollment: `TCA2468008`)
 * **Project Type:** Final Year Major Project / Internship Capstone Submission
 
 ---
