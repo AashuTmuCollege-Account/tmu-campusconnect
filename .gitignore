@@ -1,0 +1,50 @@
+# Python Virtual Environments
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Large Binary Installers & Executables (Exceeds GitHub limits or platform-specific)
+*.exe
+*.dll
+*.so
+*.dylib
+*.zip
+*.tar.gz
+
+# Redundant offline packaging folder (kept locally for USB distribution)
+Copy-Past deploy friendly TMU-Campusconnect/
+
+# IDE / Editor Files
+.vscode/
+.idea/
+.claude/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary & Log Files
+*.log
+scratch/
+tmp/
+*.tmp
