@@ -1,8 +1,8 @@
 # 🎓 TMU CampusConnect — Comprehensive Project Presentation & PPT Source Document
 > **AI PPT Generation Master Briefing**  
 > *Feed this document directly into Gamma, ChatGPT, SlidesAI, Tome, or Claude to generate a presentation deck.*  
-> **Live Presentation Deck (PPTX):** [https://docs.google.com/presentation/d/13RR1poanwfnmSjKM5t_sKsrNDSM0c-SPauWyYibzRMU/edit?usp=sharing](https://docs.google.com/presentation/d/13RR1poanwfnmSjKM5t_sKsrNDSM0c-SPauWyYibzRMU/edit?usp=sharing)  
-> **Official Project Report:** [https://1drv.ms/w/c/e3fbbcd6169783b1/IQAjzOGNm1fYQ7aI9ddFIGi6AeZqgnmdRz36kVOfmjIvsBk?e=06bLx1](https://1drv.ms/w/c/e3fbbcd6169783b1/IQAjzOGNm1fYQ7aI9ddFIGi6AeZqgnmdRz36kVOfmjIvsBk?e=06bLx1)
+> **Live Presentation Deck (PPTX):** [Project Presentation Deck (Google Slides)](https://docs.google.com/presentation/d/13RR1poanwfnmSjKM5t_sKsrNDSM0c-SPauWyYibzRMU/edit?usp=sharing)  
+> **Official Project Report:** [Final Project & Internship Report (DOCX)](https://1drv.ms/w/c/e3fbbcd6169783b1/IQAjzOGNm1fYQ7aI9ddFIGi6AeZqgnmdRz36kVOfmjIvsBk?e=06bLx1)
 
 ---
 

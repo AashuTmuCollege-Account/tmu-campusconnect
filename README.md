@@ -178,8 +178,8 @@ When running with the internet tunnel enabled (`START_INTERNET_TUNNEL.bat`), any
 | **🎓 TMU Amber Chat Widget**<br>*(Student & Visitor Portal)* | 🔗 **[Launch Live Chat Widget](https://unstuffed-flyover-answering.ngrok-free.dev/widget/)**<br>`https://unstuffed-flyover-answering.ngrok-free.dev/widget/`<br><br>• Open to all students & visitors (no login needed)<br>• Official TMU Amber theme, logo & smart link pills<br>• 15-minute privacy auto-clear & reset button | <a href="https://unstuffed-flyover-answering.ngrok-free.dev/widget/"><img src="assets/qr-chatbot-widget.png" width="140" height="140" alt="QR Code - TMU Chat Widget" /></a><br><sub>📱 Scan to open chat on phone</sub> |
 | **🔐 Admin Control Panel**<br>*(Knowledge & Logs Management)* | 🔗 **[Open Admin Panel](https://unstuffed-flyover-answering.ngrok-free.dev/panel/)**<br>`https://unstuffed-flyover-answering.ngrok-free.dev/panel/`<br><br>• **Username:** `admin`<br>• **Password:** `admin123`<br>• Knowledge upload, student query logs & telemetry | <a href="https://unstuffed-flyover-answering.ngrok-free.dev/panel/"><img src="assets/qr-admin-panel.png" width="140" height="140" alt="QR Code - Admin Control Panel" /></a><br><sub>📱 Scan to open admin on phone</sub> |
 
-* **📽️ PPTX:** [https://docs.google.com/presentation/d/13RR1poanwfnmSjKM5t_sKsrNDSM0c-SPauWyYibzRMU/edit?usp=sharing](https://docs.google.com/presentation/d/13RR1poanwfnmSjKM5t_sKsrNDSM0c-SPauWyYibzRMU/edit?usp=sharing)
-* **📄 Report:** [https://1drv.ms/w/c/e3fbbcd6169783b1/IQAjzOGNm1fYQ7aI9ddFIGi6AeZqgnmdRz36kVOfmjIvsBk?e=06bLx1](https://1drv.ms/w/c/e3fbbcd6169783b1/IQAjzOGNm1fYQ7aI9ddFIGi6AeZqgnmdRz36kVOfmjIvsBk?e=06bLx1)
+* **📽️ PPTX:** [Project Presentation Deck (Google Slides)](https://docs.google.com/presentation/d/13RR1poanwfnmSjKM5t_sKsrNDSM0c-SPauWyYibzRMU/edit?usp=sharing)
+* **📄 Report:** [Final Project & Internship Report (DOCX)](https://1drv.ms/w/c/e3fbbcd6169783b1/IQAjzOGNm1fYQ7aI9ddFIGi6AeZqgnmdRz36kVOfmjIvsBk?e=06bLx1)
 * **Local API Swagger Docs:** [`http://localhost:8000/docs`](http://localhost:8000/docs) (when server is running locally)
 
 ---
