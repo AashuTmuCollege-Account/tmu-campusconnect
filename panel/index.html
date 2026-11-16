@@ -3,24 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TMU CampusConnect – Admin Panel</title>
+  <title>University Chatbot – Admin Panel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="brand-icon">🎓</div>
       <div class="brand-text">
-        <span class="brand-name">TMU CampusConnect</span>
+        <span class="brand-name">UniBot</span>
         <span class="brand-sub">Control Panel</span>
       </div>
+      <button class="sidebar-close-btn" id="sidebar-close-btn">✕</button>
     </div>
 
     <nav class="sidebar-nav">
-      <a href="#" class="nav-item active" data-page="dashboard">
+      <a href="#" class="nav-item active" id="nav-dashboard" data-page="dashboard">
         <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
       </a>
       <a href="#" class="nav-item" data-page="knowledge">
@@ -40,19 +44,23 @@
     <div class="sidebar-footer">
       <div class="user-info">
         <div class="user-avatar" id="user-avatar-sidebar">A</div>
-        <div class="user-details">
+        <div class="user-details" style="flex:1;min-width:0;">
           <span class="user-name" id="user-name-sidebar">Loading...</span>
           <span class="user-role" id="user-role-sidebar">–</span>
         </div>
+        <!-- Logout inline with user name, always visible -->
+        <button class="logout-btn-inline" id="logout-btn" title="Logout">↩</button>
       </div>
-      <button class="logout-btn" id="logout-btn">↩ Logout</button>
     </div>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content">
     <header class="top-bar">
-      <h1 class="page-title" id="page-title">Dashboard</h1>
+      <div class="top-bar-left">
+        <button class="hamburger-btn" id="hamburger-btn">☰</button>
+        <h1 class="page-title" id="page-title">Dashboard</h1>
+      </div>
       <div class="top-bar-right">
         <div class="status-badge" id="server-status">● Checking...</div>
       </div>
@@ -63,8 +71,8 @@
       <div class="login-wrapper">
         <div class="login-card glass-card">
           <div class="login-logo">🎓</div>
-          <h2 class="login-title">TMU CampusConnect</h2>
-          <p class="login-sub">Teerthanker Mahaveer University – AI Control Panel</p>
+          <h2 class="login-title">University Chatbot</h2>
+          <p class="login-sub">Sign in to the Control Panel</p>
           <form id="login-form">
             <div class="form-group">
               <label>Username</label>
@@ -114,11 +122,26 @@
         </div>
       </div>
 
-      <div class="section-header"><h2>Recent Conversations</h2></div>
+      <div class="section-header">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <h2>Recent Conversations</h2>
+          <!-- Live indicator + last updated time -->
+          <span style="display:flex;align-items:center;gap:5px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#10b981;animation:pulse 2s infinite;display:inline-block;"></span>
+            <span id="dashboard-last-updated" style="font-size:11px;color:var(--text-muted);">Loading...</span>
+          </span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-secondary btn-sm" onclick="loadDashboard()" title="Refresh now" style="font-size:12px;">🔄 Refresh</button>
+          <button class="btn btn-danger btn-sm" id="btn-clear-logs" title="Delete all conversation logs">
+            🗑️ Clear All
+          </button>
+        </div>
+      </div>
       <div class="glass-card table-card">
         <table class="data-table">
           <thead>
-            <tr><th>Question</th><th>Answer Preview</th><th>Sources</th><th>Time</th></tr>
+            <tr><th>Question</th><th>Answer Preview</th><th>Sources</th><th>Time</th><th></th></tr>
           </thead>
           <tbody id="recent-logs-body">
             <tr><td colspan="4" class="empty-state">Loading...</td></tr>
@@ -209,7 +232,10 @@
     <section class="page" id="page-users">
       <div class="section-header">
         <h2>User Management</h2>
-        <button class="btn btn-primary" id="btn-open-add-user">+ Add User</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="admin-count-badge" style="font-size:12px;color:var(--text-muted);background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:10px;">0/5 Admins</span>
+          <button class="btn btn-primary" id="btn-open-add-user">+ Add User</button>
+        </div>
       </div>
 
       <!-- Add User Modal -->
@@ -239,10 +265,11 @@
             <div class="form-group">
               <label>Role *</label>
               <select id="new-role">
-                <option value="user">Student / User</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
+                <option value="user">🎓 Student / User</option>
+                <option value="teacher">📚 Teacher (Knowledge &amp; Logs access)</option>
+                <option value="admin">🛡️ Admin (Full access, max 5)</option>
               </select>
+              <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">Admin: Max 5 accounts. Teacher: Unlimited. Teachers see Knowledge, Logs &amp; Settings (password only).</small>
             </div>
             <div class="form-error" id="user-error"></div>
             <button type="submit" class="btn btn-primary btn-full">Create User</button>
@@ -253,10 +280,10 @@
       <div class="glass-card table-card">
         <table class="data-table">
           <thead>
-            <tr><th>Username</th><th>Full Name</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+            <tr><th>Username</th><th>Full Name</th><th>Role</th><th>Password <span style="font-size:10px;color:var(--text-muted);">(admin visible)</span></th><th>Status</th><th>Created</th><th>Actions</th></tr>
           </thead>
           <tbody id="users-body">
-            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -264,30 +291,55 @@
 
     <!-- ── CHAT LOGS PAGE ── -->
     <section class="page" id="page-logs">
-      <div class="section-header"><h2>Conversation Logs</h2></div>
-      <div class="glass-card table-card">
-        <table class="data-table">
-          <thead>
-            <tr><th>Question</th><th>Answer</th><th>Sources Used</th><th>Status</th><th>Time</th></tr>
-          </thead>
-          <tbody id="logs-body">
-            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
-          </tbody>
-        </table>
+      <div class="section-header">
+        <h2>Conversation Logs</h2>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="logs-session-count" style="font-size:12px;color:var(--text-muted);background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:10px;"></span>
+          <button class="btn btn-sm btn-secondary" id="btn-toggle-logs-view" title="Toggle between session and flat view">📋 Flat View</button>
+        </div>
+      </div>
+      <!-- Session-grouped view -->
+      <div id="logs-sessions-container"></div>
+      <!-- Flat table (hidden by default) -->
+      <div id="logs-flat-container" style="display:none;">
+        <div class="glass-card table-card">
+          <table class="data-table">
+            <thead>
+              <tr><th>Question</th><th>Answer</th><th>Sources Used</th><th>Status</th><th>Time</th><th></th></tr>
+            </thead>
+            <tbody id="logs-body">
+              <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
+
+    <!-- Session Detail Modal -->
+    <div class="modal-overlay" id="session-detail-modal" style="align-items:flex-start;padding:20px;">
+      <div class="modal glass-card" style="max-width:680px;width:100%;max-height:85vh;overflow-y:auto;">
+        <div class="modal-header" style="position:sticky;top:0;background:var(--surface);z-index:2;padding-bottom:12px;border-bottom:1px solid var(--border);">
+          <div>
+            <h3 id="session-modal-title">Session</h3>
+            <p id="session-modal-meta" style="font-size:12px;color:var(--text-muted);margin:4px 0 0;"></p>
+          </div>
+          <button class="modal-close" id="close-session-modal">✕</button>
+        </div>
+        <div id="session-chat-history" style="padding:16px 0;"></div>
+      </div>
+    </div>
 
     <!-- ── SETTINGS PAGE (Admin Only) ── -->
     <section class="page" id="page-settings">
       <div class="section-header"><h2>System Settings</h2></div>
       <div class="settings-grid">
-        <div class="glass-card settings-card">
+        <div class="glass-card settings-card admin-only-card">
           <h3>Bot System Prompt</h3>
           <p class="settings-hint">This instruction guides the AI's personality and restrictions. Use <code>{university_name}</code> as a placeholder.</p>
           <textarea id="setting-system-prompt" rows="7"></textarea>
           <button class="btn btn-primary" id="save-system-prompt">Save Prompt</button>
         </div>
-        <div class="glass-card settings-card">
+        <div class="glass-card settings-card admin-only-card">
           <h3>General Configuration</h3>
           <div class="form-group">
             <label>University Name</label>
@@ -305,6 +357,20 @@
             </select>
           </div>
           <button class="btn btn-primary" id="save-general-settings">Save Settings</button>
+        </div>
+        <div class="glass-card settings-card">
+          <h3>🚫 Word &amp; Phrase Filter</h3>
+          <p class="settings-hint">Block explicit, abusive, or off-topic words in <strong>Hindi &amp; English</strong>. The bot will refuse to answer any message containing these words. Add words separated by commas. Works for whole words and phrases.</p>
+          <div id="filter-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;"></div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input type="text" id="filter-new-word" placeholder="Add word or phrase..." style="flex:1;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:inherit;outline:none;" />
+            <button class="btn btn-secondary" id="btn-add-filter-word">+ Add</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="save-word-filter">💾 Save Filter</button>
+            <button class="btn btn-secondary" id="load-default-filter">Load Defaults</button>
+          </div>
+          <div class="form-error" id="filter-error" style="margin-top:8px;"></div>
         </div>
         <div class="glass-card settings-card">
           <h3>Change My Password</h3>

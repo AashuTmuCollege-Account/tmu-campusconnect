@@ -1,21 +1,17 @@
 /**
- * TMU CampusConnect - Website Embed Script
- * Teerthanker Mahaveer University AI Chatbot
- *
+ * University Chatbot - Website Embed Script
+ * 
  * HOW TO EMBED ON YOUR UNIVERSITY WEBSITE:
  * Add this single line anywhere in your website's HTML, before </body>:
  *
  *   <script src="http://<YOUR-SERVER-IP>:8000/widget/embed.js"></script>
  *
  * The chatbot floating button will automatically appear on every page.
- * The server URL is detected automatically — no editing needed!
  */
 
 (function() {
-  // Auto-detect the server URL from this script's own src attribute.
-  // This works whether the server is localhost, an IP, or a domain — no editing needed!
   const scriptSrc = (document.currentScript || {}).src || '';
-  const SERVER = scriptSrc ? new URL(scriptSrc).origin : window.location.origin;
+  const SERVER = scriptSrc ? new URL(scriptSrc).origin : 'https://unstuffed-flyover-answering.ngrok-free.dev';
 
   // Inject styles
   const style = document.createElement('style');
@@ -23,15 +19,15 @@
     #uni-chat-fab {
       position: fixed; bottom: 24px; right: 24px; z-index: 99999;
       width: 60px; height: 60px; border-radius: 50%;
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      border: none; cursor: pointer; box-shadow: 0 4px 24px rgba(59,130,246,0.5);
+      background: linear-gradient(135deg, #FFB106, #e69500);
+      border: none; cursor: pointer; box-shadow: 0 4px 24px rgba(255,177,6,0.5);
       font-size: 28px; display: flex; align-items: center; justify-content: center;
       transition: all 0.3s; animation: fabPulse 2s ease-in-out infinite;
     }
-    #uni-chat-fab:hover { transform: scale(1.1); box-shadow: 0 6px 32px rgba(59,130,246,0.7); }
+    #uni-chat-fab:hover { transform: scale(1.1); box-shadow: 0 6px 32px rgba(255,177,6,0.7); }
     @keyframes fabPulse {
-      0%, 100% { box-shadow: 0 4px 24px rgba(59,130,246,0.5); }
-      50%       { box-shadow: 0 4px 32px rgba(59,130,246,0.8); }
+      0%, 100% { box-shadow: 0 4px 24px rgba(255,177,6,0.5); }
+      50%       { box-shadow: 0 4px 32px rgba(255,177,6,0.8); }
     }
     #uni-chat-frame-wrap {
       position: fixed; bottom: 100px; right: 24px; z-index: 99998;
@@ -58,7 +54,7 @@
   // Create FAB button
   const fab = document.createElement('button');
   fab.id = 'uni-chat-fab';
-  fab.title = 'TMU CampusConnect';
+  fab.title = 'University Assistant';
   fab.innerHTML = '🎓';
   document.body.appendChild(fab);
 
@@ -67,9 +63,12 @@
   wrap.id = 'uni-chat-frame-wrap';
   const iframe = document.createElement('iframe');
   iframe.id = 'uni-chat-iframe';
-  iframe.src = `${SERVER}/widget/`;
+  // Add ngrok bypass param so the interstitial warning is skipped inside the iframe
+  const widgetUrl = new URL(`${SERVER}/widget/`);
+  widgetUrl.searchParams.set('ngrok-skip-browser-warning', 'true');
+  iframe.src = widgetUrl.toString();
   iframe.allow = 'microphone';
-  iframe.title = 'TMU CampusConnect AI Assistant';
+  iframe.title = 'University AI Assistant';
   wrap.appendChild(iframe);
   document.body.appendChild(wrap);
 
