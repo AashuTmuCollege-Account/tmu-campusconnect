@@ -78,24 +78,125 @@ TMU CampusConnect resolves these challenges through a localized, private, and au
 
 The project employs a modular, high-throughput RAG pipeline decoupling the user presentation tier, web API gateway, vector store, and local neural inference engine:
 
-<div align="center">
-  <img src="assets/system-architecture.png" alt="System Architecture" width="780"/>
-  <p><i>Figure 1: TMU CampusConnect End-to-End System Architecture</i></p>
-</div>
+```mermaid
+flowchart TD
+    subgraph ClientLayer["🖥️ Presentation Tier (Clients)"]
+        Widget["🎓 Student Chatbot Widget<br/>(TMU Amber UI / embed.js)"]
+        AdminUI["🔐 Admin Telemetry Panel<br/>(Management & Logs)"]
+        Tunnel["🌐 Ngrok HTTPS Tunnel<br/>(Remote Internet Access)"]
+    end
+
+    subgraph APILayer["⚡ Web & Logic Tier (FastAPI Gateway)"]
+        Router["FastAPI Application Server<br/>(Port 8000 / Uvicorn)"]
+        Auth["JWT Auth & Security Shield"]
+        TypoFix["Levenshtein Typo Corrector"]
+        Chunker["Document Ingestion Engine<br/>(Recursive Splitter)"]
+    end
+
+    subgraph AILayer["🧠 Intelligence Tier (Local AI Engine)"]
+        OllamaServer["Ollama AI Runtime Engine"]
+        LlamaModel["Meta LLaMA 3.2 (3B Instruct)"]
+        EmbedModel["mxbai-embed-large (334M)"]
+    end
+
+    subgraph DataLayer["💾 Persistence Tier (Data Stores)"]
+        ChromaStore[("ChromaDB Vector Store<br/>(Cosine Semantic Index)")]
+        SQLiteDB[("SQLite Database<br/>(Users, Logs, Audit Trail)")]
+    end
+
+    Widget --> Tunnel
+    Tunnel --> Router
+    AdminUI --> Router
+    Router --> Auth
+    Router --> TypoFix
+    Router --> Chunker
+    TypoFix --> EmbedModel
+    EmbedModel --> ChromaStore
+    ChromaStore --> Router
+    Router --> OllamaServer
+    OllamaServer --> LlamaModel
+    Chunker --> EmbedModel
+    Router --> SQLiteDB
+```
 
 ### Data Flow Diagram (DFD)
 
-<div align="center">
-  <img src="assets/data-flow-diagram.png" alt="Data Flow Diagram" width="780"/>
-  <p><i>Figure 2: Level-1 Data Flow Diagram for Query Ingestion & Semantic Retrieval</i></p>
-</div>
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student as 🎓 Student / Visitor
+    participant UI as 💬 Chat Widget
+    participant API as ⚡ FastAPI Gateway
+    participant Embed as 🔤 Embedder (mxbai)
+    participant Vector as 📚 ChromaDB Store
+    participant LLM as 🧠 Ollama (LLaMA 3.2 3B)
+    participant DB as 💾 SQLite Audit DB
+
+    Student->>UI: Types query (e.g., "BCA fees and hostel")
+    UI->>API: POST /api/chat { message, session_id }
+    API->>API: Pre-process & Levenshtein typo correction
+    API->>Embed: Generate 1024-d query vector
+    Embed-->>API: Vector representation
+    API->>Vector: Query top-k nearest semantic chunks (cosine > 0.75)
+    Vector-->>API: Relevant university context chunks
+    API->>LLM: Prompt template: [University Context] + [User Query]
+    LLM-->>API: Verified natural language answer
+    API->>DB: Log interaction (query, response, latency, timestamp)
+    API-->>UI: JSON response { answer, sources }
+    UI-->>Student: Displays stream/bubble with official TMU styling
+```
 
 ### Entity-Relationship Model (ERD)
 
-<div align="center">
-  <img src="assets/er-diagram.png" alt="Entity Relationship Diagram" width="700"/>
-  <p><i>Figure 3: Relational Schema for Users, Roles, Knowledge Chunks, and Interaction Logs</i></p>
-</div>
+```mermaid
+erDiagram
+    USERS ||--o{ QUERY_LOGS : generates
+    USERS ||--o{ KNOWLEDGE_DOCS : uploads
+    KNOWLEDGE_DOCS ||--|{ KNOWLEDGE_CHUNKS : contains
+
+    USERS {
+        int id PK
+        string username UK
+        string password_hash
+        string role
+        datetime created_at
+    }
+
+    KNOWLEDGE_DOCS {
+        int id PK
+        string filename
+        string file_type
+        int file_size
+        int uploaded_by FK
+        datetime uploaded_at
+        string status
+    }
+
+    KNOWLEDGE_CHUNKS {
+        int id PK
+        int doc_id FK
+        string chroma_id UK
+        string chunk_text
+        int chunk_index
+    }
+
+    QUERY_LOGS {
+        int id PK
+        string session_id
+        string user_query
+        string bot_response
+        float response_time_ms
+        int feedback_rating
+        datetime timestamp
+    }
+
+    SYSTEM_METRICS {
+        int id PK
+        string metric_name
+        float metric_value
+        datetime recorded_at
+    }
+```
 
 ---
 
