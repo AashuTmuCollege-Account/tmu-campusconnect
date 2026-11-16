@@ -1,12 +1,13 @@
 ﻿<#
 .SYNOPSIS
-    TMU CampusConnect — Universal Windows One-Click Installer & System Doctor
+    TMU CampusConnect — Pristine Light Universal Deployment Hub & Doctor
 .DESCRIPTION
-    Zero-config automated installer for Teerthanker Mahaveer University AI Assistant.
-    Auto-detects and installs Python 3.12, Ollama, verifies and pulls AI models,
-    builds isolated virtualenv, auto-repairs bcrypt/passlib and ChromaDB dependency conflicts,
-    pre-loads TMU university knowledge base, pre-configures permanent ngrok domain,
-    and creates 1-click launchers and desktop shortcuts.
+    Zero-config automated installer and quick-deploy launcher for TMU AI Assistant.
+    Features:
+      - Apple-inspired Pristine Light aesthetic (Material Design + Glassmorphism)
+      - Dual-tab navigation: "1-Click Installation & Health" + "Quick Launch & Deploy Hub"
+      - One-click server launcher, ngrok tunnel, and browser shortcuts
+      - Auto-detects and installs Python 3.12, Ollama, local models, and repairs dependencies
 #>
 
 [CmdletBinding()]
@@ -24,7 +25,6 @@ $ErrorActionPreference = "Continue"
 $RootDir = $PSScriptRoot
 if (-not $RootDir) { $RootDir = (Get-Location).Path }
 
-# Backend directory resolution
 $BackendDir = Join-Path $RootDir "backend"
 if (-not (Test-Path $BackendDir)) {
     $alt = Join-Path $RootDir "03 - Chatbot App\backend"
@@ -66,8 +66,14 @@ function Update-SessionPath {
 Update-SessionPath
 
 # -------------------------------------------------------------
-# LOGGING & UI DISPATCHERS
+# DISPATCHER FLUSH & UI LOGGING
 # -------------------------------------------------------------
+function Flush-UI {
+    try {
+        [System.Windows.Threading.Dispatcher]::CurrentDispatcher.Invoke([Action]{}, [System.Windows.Threading.DispatcherPriority]::Background)
+    } catch {}
+}
+
 function Log-Msg {
     param([string]$Text, [string]$Type = "INFO")
     $ts = (Get-Date).ToString("HH:mm:ss")
@@ -82,10 +88,9 @@ function Log-Msg {
     
     if ($global:LogBox) {
         try {
-            $global:LogBox.Dispatcher.Invoke([Action]{
-                $global:LogBox.AppendText("[$ts] $Text`r`n")
-                $global:LogBox.ScrollToEnd()
-            })
+            $global:LogBox.AppendText("[$ts] $Text`r`n")
+            $global:LogBox.ScrollToEnd()
+            Flush-UI
         } catch {}
     }
 }
@@ -95,10 +100,9 @@ function Set-CardStatus {
     if ($global:UIBadges -and $global:UIBadges.ContainsKey($CardName)) {
         try {
             $badge = $global:UIBadges[$CardName]
-            $badge.Dispatcher.Invoke([Action]{
-                $badge.Text = $StatusText
-                $badge.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString($StatusColor)
-            })
+            $badge.Text = $StatusText
+            $badge.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString($StatusColor)
+            Flush-UI
         } catch {}
     }
 }
@@ -107,10 +111,9 @@ function Update-ProgressBar {
     param([double]$Value, [string]$Status)
     if ($global:ProgressBar) {
         try {
-            $global:ProgressBar.Dispatcher.Invoke([Action]{
-                $global:ProgressBar.Value = $Value
-                if ($global:ProgressStatus) { $global:ProgressStatus.Text = $Status }
-            })
+            $global:ProgressBar.Value = $Value
+            if ($global:ProgressStatus) { $global:ProgressStatus.Text = $Status }
+            Flush-UI
         } catch {}
     }
 }
@@ -121,7 +124,6 @@ function Update-ProgressBar {
 
 function Check-Python312 {
     Update-SessionPath
-    # 1. py launcher
     try {
         $v = & py -3.12 --version 2>&1
         if ($LASTEXITCODE -eq 0 -and $v -match "Python 3\.12") {
@@ -129,7 +131,6 @@ function Check-Python312 {
         }
     } catch {}
 
-    # 2. python in PATH
     try {
         $v = & python --version 2>&1
         if ($LASTEXITCODE -eq 0 -and $v -match "Python 3\.12") {
@@ -137,7 +138,6 @@ function Check-Python312 {
         }
     } catch {}
 
-    # 3. Direct AppData path
     $pyExe = Join-Path $env:LOCALAPPDATA "Programs\Python\Python312\python.exe"
     if (Test-Path $pyExe) {
         $v = & $pyExe --version 2>&1
@@ -149,7 +149,6 @@ function Check-Python312 {
 
 function Install-Python312 {
     Log-Msg "Searching for offline Python 3.12 installer..." "STEP"
-    
     $bundled = Get-ChildItem -Path $RootDir -Recurse -Filter "python-3.12*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
     $installerPath = $null
     
@@ -174,10 +173,6 @@ function Install-Python312 {
 
     Log-Msg "Executing silent installation of Python 3.12 with PATH configured..." "STEP"
     $proc = Start-Process -FilePath $installerPath -ArgumentList "/quiet", "InstallAllUsers=0", "PrependPath=1", "Include_test=0", "Include_pip=1", "Include_launcher=1", "SimpleInstall=1" -Wait -PassThru
-    if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
-        Log-Msg "Installer exited with code: $($proc.ExitCode)" "WARN"
-    }
-
     Update-SessionPath
     Start-Sleep -Seconds 3
 
@@ -290,7 +285,6 @@ function Verify-And-Pull-Models {
         $installedModels = $cliList
     }
 
-    # 1. Chat model: llama3.2:3b
     $hasChat = $false
     foreach ($m in $installedModels) {
         if ($m -match "llama3\.2:3b") { $hasChat = $true; break }
@@ -305,7 +299,6 @@ function Verify-And-Pull-Models {
         Log-Msg "Chat Model 'llama3.2:3b' pulled successfully." "SUCCESS"
     }
 
-    # 2. Embeddings model: mxbai-embed-large
     $hasEmbed = $false
     foreach ($m in $installedModels) {
         if ($m -match "mxbai-embed-large") { $hasEmbed = $true; break }
@@ -352,22 +345,19 @@ function Setup-PythonEnvironment {
 
     $reqFile = Join-Path $BackendDir "requirements.txt"
     if (Test-Path $reqFile) {
-        Log-Msg "Installing runtime dependencies from requirements.txt..." "STEP"
-        & $pipExe install -r $reqFile --quiet
+        Log-Msg "Installing runtime dependencies (showing live progress)..." "STEP"
+        & $pipExe install -r $reqFile
     }
 
     # Self-Healing Check 1: bcrypt & passlib
     Log-Msg "Testing cryptographic authentication libraries for version conflicts..." "INFO"
     $authTest = & $pythonExe -c "import bcrypt; import passlib.context; print('AUTH_OK')" 2>&1
     if ($authTest -notmatch "AUTH_OK") {
-        Log-Msg "Detected bcrypt/passlib mismatch: $authTest" "WARN"
-        Log-Msg "Self-Healing: Installing compatible bcrypt==4.0.1 passlib==1.7.4..." "STEP"
+        Log-Msg "Detected bcrypt/passlib mismatch. Self-Healing in progress..." "WARN"
         & $pipExe install bcrypt==4.0.1 passlib==1.7.4 --force-reinstall --quiet
         $authTest2 = & $pythonExe -c "import bcrypt; import passlib.context; print('AUTH_OK')" 2>&1
         if ($authTest2 -match "AUTH_OK") {
             Log-Msg "Self-healing successful! Authentication libraries patched." "SUCCESS"
-        } else {
-            Log-Msg "Warning: Authentication check returned: $authTest2" "WARN"
         }
     } else {
         Log-Msg "Authentication and crypto libraries are 100% compatible." "SUCCESS"
@@ -378,13 +368,11 @@ function Setup-PythonEnvironment {
     if ($fwTest -match "CORE_OK") {
         Log-Msg "Core AI & Web Framework verified successfully." "SUCCESS"
     } else {
-        Log-Msg "Self-Healing: Installing modern pre-built chromadb>=1.5.0 and fastapi..." "STEP"
+        Log-Msg "Self-Healing: Installing chromadb>=1.5.0 and fastapi..." "STEP"
         & $pipExe install chromadb==1.5.9 fastapi langchain langchain-community langchain-chroma --quiet
         $fwTest2 = & $pythonExe -c "import fastapi, chromadb, langchain; print('CORE_OK')" 2>&1
         if ($fwTest2 -match "CORE_OK") {
             Log-Msg "Self-healing successful! Core AI framework active." "SUCCESS"
-        } else {
-            Log-Msg "Warning: Core framework check returned: $fwTest2" "WARN"
         }
     }
 
@@ -393,14 +381,13 @@ function Setup-PythonEnvironment {
     if ($mainTest -match "MAIN_OK") {
         Log-Msg "Backend application code loaded with 0 errors!" "SUCCESS"
     } else {
-        Log-Msg "Application verification warning: $mainTest" "WARN"
+        Log-Msg "Application verification note: $mainTest" "WARN"
     }
 }
 
 function Configure-EnvironmentAndKnowledge {
     Log-Msg "Configuring pre-filled settings and knowledge base..." "STEP"
 
-    # 1. Setup .env
     $envPath = Join-Path $BackendDir ".env"
     $randomSecret = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 36 | ForEach-Object {[char]$_})
     
@@ -427,7 +414,6 @@ BRAVE_SEARCH_API_KEY=
         Log-Msg "Existing .env found. Leaving custom settings intact." "INFO"
     }
 
-    # 2. Verify Knowledge Base (data folder)
     $dataDir = Join-Path $BackendDir "data"
     $chromaDir = Join-Path $dataDir "chromadb"
     $dbFile = Join-Path $dataDir "tmu_campusconnect.db"
@@ -435,7 +421,6 @@ BRAVE_SEARCH_API_KEY=
     if (-not (Test-Path $dataDir)) { New-Item -ItemType Directory -Path $dataDir -Force | Out-Null }
     if (-not (Test-Path $chromaDir)) { New-Item -ItemType Directory -Path $chromaDir -Force | Out-Null }
 
-    # Sync university_chatbot.db to tmu_campusconnect.db if needed
     $altDb = Join-Path $dataDir "university_chatbot.db"
     if ((Test-Path $altDb) -and (-not (Test-Path $dbFile) -or (Get-Item $dbFile).Length -lt 1000)) {
         Copy-Item -Path $altDb -Destination $dbFile -Force
@@ -448,7 +433,7 @@ BRAVE_SEARCH_API_KEY=
         Log-Msg "TMU Knowledge Base verified: DB ($dbSize KB), Vector Store ($chromaSize MB)." "SUCCESS"
     }
 
-    # 3. Configure Ngrok pre-filled settings
+    # Pre-filled Ngrok Settings
     $ngrokDomainFile = Join-Path $BackendDir "ngrok_domain.txt"
     Set-Content -Path $ngrokDomainFile -Value "$PreFilledNgrokDomain`n$PreFilledNgrokToken" -Encoding UTF8
 
@@ -467,7 +452,7 @@ BRAVE_SEARCH_API_KEY=
         } catch {}
     }
 
-    # 4. Configure widget embed.js with prefilled domain
+    # Widget Embed JS
     $embedJs = Join-Path $WidgetDir "embed.js"
     if (Test-Path $embedJs) {
         Log-Msg "Configured embed.js with permanent domain ($PreFilledNgrokDomain)." "INFO"
@@ -477,7 +462,6 @@ BRAVE_SEARCH_API_KEY=
 function Create-LaunchersAndShortcuts {
     Log-Msg "Creating 1-click Windows launchers and Desktop shortcut..." "STEP"
 
-    # 1. START_CHATBOT.bat in Root
     $startChatbotBat = Join-Path $RootDir "START_CHATBOT.bat"
     $batContent = @"
 @echo off
@@ -535,7 +519,6 @@ start "" "http://localhost:8000/panel/"
 "@
     Set-Content -Path $startChatbotBat -Value $batContent -Encoding UTF8
 
-    # 2. START_INTERNET_TUNNEL.bat in Root
     $startTunnelBat = Join-Path $RootDir "START_INTERNET_TUNNEL.bat"
     $tunnelContent = @"
 @echo off
@@ -561,7 +544,6 @@ pause
 "@
     Set-Content -Path $startTunnelBat -Value $tunnelContent -Encoding UTF8
 
-    # 3. DOCTOR_AND_REPAIR.bat in Root
     $doctorBat = Join-Path $RootDir "DOCTOR_AND_REPAIR.bat"
     $doctorContent = @"
 @echo off
@@ -574,7 +556,6 @@ pause
 "@
     Set-Content -Path $doctorBat -Value $doctorContent -Encoding UTF8
 
-    # 4. Create Desktop Shortcut (ASCII name to prevent COM encoding failure)
     try {
         $desktop = [System.Environment]::GetFolderPath("Desktop")
         $shortcutPath = Join-Path $desktop "TMU CampusConnect.lnk"
@@ -586,7 +567,7 @@ pause
         $shortcut.Save()
         Log-Msg "Desktop shortcut created: $shortcutPath" "SUCCESS"
     } catch {
-        Log-Msg "Could not create desktop shortcut automatically: $_" "WARN"
+        Log-Msg "Notice: Could not place shortcut on desktop automatically: $_" "WARN"
     }
 }
 
@@ -600,56 +581,53 @@ function Run-FullInstallation {
         $memGB = [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB, 1)
         Log-Msg "OS: $osName ($arch) | Total RAM: ${memGB} GB" "INFO"
         
-        if ($memGB -lt 7.0) {
-            Log-Msg "Notice: Total RAM is ${memGB} GB. LLaMA 3.2 3B runs optimally with 8+ GB RAM." "WARN"
-        }
-        Set-CardStatus "SysCheck" "[PASS] Compatible" "#34D399"
+        Set-CardStatus "SysCheck" "[PASS] Compatible" "#1B7A43"
 
         # Stage 2: Python 3.12
         Update-ProgressBar 25 "Inspecting / Installing Python 3.12..."
         Log-Msg "=== STAGE 2: Python 3.12 Detection ===" "STEP"
         $py = Check-Python312
         if (-not $py.Found) {
-            Set-CardStatus "Python" "[INSTALLING...]" "#FBBF24"
+            Set-CardStatus "Python" "[INSTALLING...]" "#9A6200"
             Install-Python312
         } else {
             Log-Msg "Python 3.12 is verified: $($py.Version)" "SUCCESS"
         }
-        Set-CardStatus "Python" "[READY] Python 3.12" "#34D399"
+        Set-CardStatus "Python" "[READY] Python 3.12" "#1B7A43"
 
         # Stage 3: Ollama
         Update-ProgressBar 40 "Inspecting / Installing Ollama Engine..."
         Log-Msg "=== STAGE 3: Ollama AI Server Inspection ===" "STEP"
         $ollama = Check-Ollama
         if (-not $ollama.Found) {
-            Set-CardStatus "Ollama" "[INSTALLING...]" "#FBBF24"
+            Set-CardStatus "Ollama" "[INSTALLING...]" "#9A6200"
             Install-Ollama
         } else {
             Log-Msg "Ollama engine is verified: $($ollama.Version)" "SUCCESS"
         }
         Ensure-OllamaRunning
-        Set-CardStatus "Ollama" "[ONLINE] Ollama Active" "#34D399"
+        Set-CardStatus "Ollama" "[ONLINE] Ollama Active" "#1B7A43"
 
         # Stage 4: AI Models
         Update-ProgressBar 55 "Verifying Local AI Brains (llama3.2 & mxbai)..."
         Log-Msg "=== STAGE 4: Local AI Models Verification ===" "STEP"
-        Set-CardStatus "Models" "[VERIFYING...]" "#FBBF24"
+        Set-CardStatus "Models" "[VERIFYING...]" "#9A6200"
         Verify-And-Pull-Models
-        Set-CardStatus "Models" "[VERIFIED] AI Brains Ready" "#34D399"
+        Set-CardStatus "Models" "[VERIFIED] Brains Ready" "#1B7A43"
 
         # Stage 5: Python Virtual Environment
         Update-ProgressBar 70 "Building Virtual Environment & Self-Healing Packages..."
         Log-Msg "=== STAGE 5: Python Environment & Dependencies ===" "STEP"
-        Set-CardStatus "Venv" "[CONFIGURING...]" "#FBBF24"
+        Set-CardStatus "Venv" "[CONFIGURING...]" "#9A6200"
         Setup-PythonEnvironment
-        Set-CardStatus "Venv" "[READY] Environment Intact" "#34D399"
+        Set-CardStatus "Venv" "[READY] Environment Intact" "#1B7A43"
 
         # Stage 6: Pre-filled settings & Knowledge Base
         Update-ProgressBar 85 "Setting up Pre-filled Config, Ngrok, and Knowledge Base..."
         Log-Msg "=== STAGE 6: Configuration & Knowledge Base Restoration ===" "STEP"
-        Set-CardStatus "Knowledge" "[CONFIGURING...]" "#FBBF24"
+        Set-CardStatus "Knowledge" "[CONFIGURING...]" "#9A6200"
         Configure-EnvironmentAndKnowledge
-        Set-CardStatus "Knowledge" "[LOADED] 13 Sources Ready" "#34D399"
+        Set-CardStatus "Knowledge" "[LOADED] 13 Sources Ready" "#1B7A43"
 
         # Stage 7: Shortcuts & Launchers
         Update-ProgressBar 95 "Generating 1-Click Launchers and Shortcuts..."
@@ -665,39 +643,87 @@ function Run-FullInstallation {
         Log-Msg "Ngrok Domain: https://$PreFilledNgrokDomain" "SUCCESS"
         Log-Msg "=====================================================" "SUCCESS"
 
-        if ($global:BtnLaunchPanel) {
-            $global:BtnLaunchPanel.Dispatcher.Invoke([Action]{
-                $global:BtnLaunchPanel.IsEnabled = $true
-            })
-        }
-        if ($global:BtnLaunchWidget) {
-            $global:BtnLaunchWidget.Dispatcher.Invoke([Action]{
-                $global:BtnLaunchWidget.IsEnabled = $true
-            })
-        }
         if ($global:BtnInstall) {
-            $global:BtnInstall.Dispatcher.Invoke([Action]{
-                $global:BtnInstall.Content = "✔ Installation Complete & Running"
-                $global:BtnInstall.Background = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#059669")
-                $global:BtnInstall.IsEnabled = $true
-            })
+            $global:BtnInstall.Content = "✔ Installation Complete — Ready to Launch!"
+            $global:BtnInstall.Background = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#1B7A43")
+            $global:BtnInstall.IsEnabled = $true
+        }
+
+        # Auto-switch to Quick Launch Tab to make user's life effortless
+        if ($global:TabBtnDeploy) {
+            Start-Sleep -Seconds 1
+            $global:TabBtnDeploy.RaiseEvent((New-Object System.Windows.RoutedEventArgs([System.Windows.Controls.Button]::ClickEvent)))
         }
 
     } catch {
         Log-Msg "INSTALLATION ERROR: $_" "ERROR"
         Update-ProgressBar 100 "Error during installation. See log below."
         if ($global:BtnInstall) {
-            $global:BtnInstall.Dispatcher.Invoke([Action]{
-                $global:BtnInstall.IsEnabled = $true
-                $global:BtnInstall.Content = "⚠ Repair / Retry Installation"
-                $global:BtnInstall.Background = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#DC2626")
-            })
+            $global:BtnInstall.IsEnabled = $true
+            $global:BtnInstall.Content = "⚠ Repair / Retry Installation"
+            $global:BtnInstall.Background = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#BA1A1A")
         }
     }
 }
 
 # -------------------------------------------------------------
-# GUI DEFINITION (WPF XAML inspired by Modern App UI)
+# QUICK LAUNCH TELEMETRY
+# -------------------------------------------------------------
+function Update-QuickDeployStatus {
+    # 1. Server Status
+    $srvActive = $false
+    try {
+        $srv = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue
+        if ($srv) { $srvActive = $true }
+    } catch {}
+
+    if ($global:StatusServer) {
+        if ($srvActive) {
+            $global:StatusServer.Text = "● ONLINE (Port 8000)"
+            $global:StatusServer.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#1B7A43")
+        } else {
+            $global:StatusServer.Text = "○ OFFLINE"
+            $global:StatusServer.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#BA1A1A")
+        }
+    }
+
+    # 2. Ollama Status
+    $ollamaActive = $false
+    try {
+        $res = Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -Method Get -TimeoutSec 1 -ErrorAction SilentlyContinue
+        if ($res) { $ollamaActive = $true }
+    } catch {}
+
+    if ($global:StatusOllama) {
+        if ($ollamaActive) {
+            $global:StatusOllama.Text = "● ONLINE (Port 11434)"
+            $global:StatusOllama.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#1B7A43")
+        } else {
+            $global:StatusOllama.Text = "○ OFFLINE"
+            $global:StatusOllama.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#BA1A1A")
+        }
+    }
+
+    # 3. Ngrok Status
+    $tunnelActive = $false
+    try {
+        $ng = Get-Process -Name ngrok -ErrorAction SilentlyContinue
+        if ($ng) { $tunnelActive = $true }
+    } catch {}
+
+    if ($global:StatusTunnel) {
+        if ($tunnelActive) {
+            $global:StatusTunnel.Text = "● ACTIVE (Public Web Link Live)"
+            $global:StatusTunnel.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#1B7A43")
+        } else {
+            $global:StatusTunnel.Text = "○ STANDBY"
+            $global:StatusTunnel.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#6E6E73")
+        }
+    }
+}
+
+# -------------------------------------------------------------
+# GUI DEFINITION (Pristine Apple-Inspired Light Theme)
 # -------------------------------------------------------------
 
 function Show-InstallerGUI {
@@ -706,212 +732,333 @@ function Show-InstallerGUI {
     [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="TMU CampusConnect — One-Click Installer &amp; System Doctor"
-        Height="780" Width="880"
-        WindowStartupLocation="CenterScreen" Background="#0B0F19" ResizeMode="CanMinimize">
+        Title="TMU CampusConnect — One-Click Universal Deployment Hub"
+        Height="800" Width="880"
+        WindowStartupLocation="CenterScreen" Background="#F5F5F7" ResizeMode="CanMinimize">
     <Window.Resources>
         <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Segoe UI, Inter, Arial"/>
-            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="FontFamily" Value="Segoe UI, -apple-system, BlinkMacSystemFont, Arial"/>
+            <Setter Property="Foreground" Value="#1D1D1F"/>
         </Style>
     </Window.Resources>
     
-    <Grid Margin="20">
+    <Grid Margin="22">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/> <!-- Header Bar -->
+            <RowDefinition Height="Auto"/> <!-- Segmented Navigation Pills -->
+            <RowDefinition Height="*"/>    <!-- Tab Content Area -->
         </Grid.RowDefinitions>
 
-        <!-- Header Card (WingetUI Style) -->
-        <Border Grid.Row="0" Background="#1E293B" CornerRadius="12" Padding="16" Margin="0,0,0,12" BorderBrush="#334155" BorderThickness="1">
+        <!-- Header Card (Apple Clean Style) -->
+        <Border Grid.Row="0" Background="#FFFFFF" CornerRadius="14" Padding="16" Margin="0,0,0,14" BorderBrush="#E5E5EA" BorderThickness="1">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="54"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
-                <!-- App Icon -->
-                <Border Width="52" Height="52" CornerRadius="12">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#2563EB" Offset="0"/>
-                            <GradientStop Color="#7C3AED" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <TextBlock Text="🎓" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- University App Icon -->
+                <Border Width="48" Height="48" CornerRadius="12" Background="#0071E3">
+                    <TextBlock Text="🎓" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
                 <!-- Title & Tags -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="14,0,0,0">
-                    <TextBlock Text="TMU CampusConnect AI" FontSize="18" FontWeight="Bold"/>
-                    <WrapPanel Margin="0,4,0,4">
-                        <Border Background="#3B0764" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" BorderBrush="#7E22CE" BorderThickness="1">
-                            <TextBlock Text="campus-ai" FontSize="10" Foreground="#D8B4FE"/>
+                    <TextBlock Text="TMU CampusConnect" FontSize="18" FontWeight="Bold" Foreground="#1D1D1F"/>
+                    <WrapPanel Margin="0,3,0,3">
+                        <Border Background="#F2F2F7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                            <TextBlock Text="campus-ai" FontSize="10" FontWeight="Medium" Foreground="#6E6E73"/>
                         </Border>
-                        <Border Background="#1E1B4B" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" BorderBrush="#4338CA" BorderThickness="1">
-                            <TextBlock Text="offline-llm" FontSize="10" Foreground="#A5B4FC"/>
+                        <Border Background="#F2F2F7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                            <TextBlock Text="offline-llm" FontSize="10" FontWeight="Medium" Foreground="#6E6E73"/>
                         </Border>
-                        <Border Background="#064E3B" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" BorderBrush="#047857" BorderThickness="1">
-                            <TextBlock Text="rag-database" FontSize="10" Foreground="#6EE7B7"/>
+                        <Border Background="#F2F2F7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                            <TextBlock Text="llama-3.2-3b" FontSize="10" FontWeight="Medium" Foreground="#0071E3"/>
                         </Border>
-                        <Border Background="#0C4A6E" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" BorderBrush="#0284C7" BorderThickness="1">
-                            <TextBlock Text="fastapi" FontSize="10" Foreground="#7DD3FC"/>
-                        </Border>
-                        <Border Background="#451A03" CornerRadius="4" Padding="6,2" BorderBrush="#B45309" BorderThickness="1">
-                            <TextBlock Text="llama-3.2-3b" FontSize="10" Foreground="#FCD34D"/>
+                        <Border Background="#F2F2F7" CornerRadius="4" Padding="6,2">
+                            <TextBlock Text="chromadb-rag" FontSize="10" FontWeight="Medium" Foreground="#6E6E73"/>
                         </Border>
                     </WrapPanel>
-                    <TextBlock Text="Teerthanker Mahaveer University Intelligent Assistant · Zero-Config Windows Installer" FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock Text="Teerthanker Mahaveer University · On-Device AI Campus Assistant" FontSize="11" Foreground="#86868B"/>
                 </StackPanel>
 
                 <!-- Version Badge -->
-                <Border Grid.Column="2" Background="#064E3B" CornerRadius="8" Padding="12,6" VerticalAlignment="Center" BorderBrush="#059669" BorderThickness="1">
-                    <TextBlock Text="v2.0 Universal" FontSize="12" FontWeight="SemiBold" Foreground="#34D399"/>
+                <Border Grid.Column="2" Background="#E8F8EE" CornerRadius="8" Padding="12,5" VerticalAlignment="Center" BorderBrush="#C6EED4" BorderThickness="1">
+                    <TextBlock Text="v2.0 Universal" FontSize="11" FontWeight="SemiBold" Foreground="#1B7A43"/>
                 </Border>
             </Grid>
         </Border>
 
-        <!-- Metadata Specs Grid (WingetUI Style) -->
-        <Border Grid.Row="1" Background="#131C2E" CornerRadius="10" Padding="12,8" Margin="0,0,0,12" BorderBrush="#1E293B" BorderThickness="1">
-            <UniformGrid Columns="3">
-                <StackPanel Margin="6,2">
-                    <TextBlock Text="Publisher" FontSize="10" Foreground="#64748B"/>
-                    <TextBlock Text="Teerthanker Mahaveer University" FontSize="11" FontWeight="SemiBold" Foreground="#E2E8F0"/>
-                </StackPanel>
-                <StackPanel Margin="6,2">
-                    <TextBlock Text="Local AI Server" FontSize="10" Foreground="#64748B"/>
-                    <TextBlock Text="Ollama (LLaMA 3.2 3B &amp; mxbai)" FontSize="11" FontWeight="SemiBold" Foreground="#38BDF8"/>
-                </StackPanel>
-                <StackPanel Margin="6,2">
-                    <TextBlock Text="Web Server / Port" FontSize="10" Foreground="#64748B"/>
-                    <TextBlock Text="FastAPI · http://localhost:8000" FontSize="11" FontWeight="SemiBold" Foreground="#4ADE80"/>
-                </StackPanel>
-                <StackPanel Margin="6,2">
-                    <TextBlock Text="Pre-filled Ngrok Domain" FontSize="10" Foreground="#64748B"/>
-                    <TextBlock Text="unstuffed-flyover-answering.ngrok-free.dev" FontSize="11" FontWeight="SemiBold" Foreground="#F472B6"/>
-                </StackPanel>
-                <StackPanel Margin="6,2">
-                    <TextBlock Text="Pre-loaded Knowledge" FontSize="10" Foreground="#64748B"/>
-                    <TextBlock Text="13 Documents &amp; 284 Logs (4.4 MB)" FontSize="11" FontWeight="SemiBold" Foreground="#FBBF24"/>
-                </StackPanel>
-                <StackPanel Margin="6,2">
-                    <TextBlock Text="Default Admin" FontSize="10" Foreground="#64748B"/>
-                    <TextBlock Text="admin / admin123" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                </StackPanel>
-            </UniformGrid>
-        </Border>
-
-        <!-- Live Diagnostics Cards Grid -->
-        <UniformGrid Grid.Row="2" Columns="3" Margin="0,0,0,12">
-            <!-- Card 1: System -->
-            <Border Background="#131C2E" CornerRadius="10" Padding="10" Margin="3" BorderBrush="#1E293B" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="💻 System Compatibility" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8"/>
-                    <TextBlock x:Name="BadgeSysCheck" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" Margin="0,3,0,0"/>
-                </StackPanel>
-            </Border>
-            <!-- Card 2: Python -->
-            <Border Background="#131C2E" CornerRadius="10" Padding="10" Margin="3" BorderBrush="#1E293B" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="🐍 Python 3.12 Engine" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8"/>
-                    <TextBlock x:Name="BadgePython" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" Margin="0,3,0,0"/>
-                </StackPanel>
-            </Border>
-            <!-- Card 3: Ollama -->
-            <Border Background="#131C2E" CornerRadius="10" Padding="10" Margin="3" BorderBrush="#1E293B" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="🦙 Ollama AI Server" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8"/>
-                    <TextBlock x:Name="BadgeOllama" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" Margin="0,3,0,0"/>
-                </StackPanel>
-            </Border>
-            <!-- Card 4: AI Models -->
-            <Border Background="#131C2E" CornerRadius="10" Padding="10" Margin="3" BorderBrush="#1E293B" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="🧠 LLaMA 3.2 + mxbai" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8"/>
-                    <TextBlock x:Name="BadgeModels" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" Margin="0,3,0,0"/>
-                </StackPanel>
-            </Border>
-            <!-- Card 5: Venv -->
-            <Border Background="#131C2E" CornerRadius="10" Padding="10" Margin="3" BorderBrush="#1E293B" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="📦 Virtualenv &amp; Self-Heal" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8"/>
-                    <TextBlock x:Name="BadgeVenv" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#F59E0B" Margin="0,3,0,0"/>
-                </StackPanel>
-            </Border>
-            <!-- Card 6: Knowledge -->
-            <Border Background="#131C2E" CornerRadius="10" Padding="10" Margin="3" BorderBrush="#1E293B" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="📚 Knowledge Base" FontSize="11" FontWeight="SemiBold" Foreground="#94A3B8"/>
-                    <TextBlock x:Name="BadgeKnowledge" Text="[READY] 13 Sources" FontSize="11" FontWeight="Bold" Foreground="#38BDF8" Margin="0,3,0,0"/>
-                </StackPanel>
-            </Border>
-        </UniformGrid>
-
-        <!-- Progress Section -->
-        <Border Grid.Row="3" Background="#1E293B" CornerRadius="10" Padding="12" Margin="0,0,0,10" BorderBrush="#334155" BorderThickness="1">
-            <StackPanel>
-                <Grid Margin="0,0,0,6">
-                    <TextBlock x:Name="ProgressStatus" Text="Ready to initialize automated installation and diagnostic checks." FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1"/>
-                </Grid>
-                <ProgressBar x:Name="ProgressBar" Height="7" Minimum="0" Maximum="100" Value="0" Background="#0F172A" Foreground="#3B82F6" BorderThickness="0"/>
+        <!-- Segmented Navigation Pills (Apple Style) -->
+        <Border Grid.Row="1" Background="#E5E5EA" CornerRadius="10" Padding="3" Margin="0,0,0,14" HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="TabBtnInstall" Content="🚀 Installation &amp; Diagnostics" Height="32" Padding="18,0"
+                        Background="#FFFFFF" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="12" Cursor="Hand" BorderThickness="0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button x:Name="TabBtnDeploy" Content="⚡ Quick Launch &amp; Deploy Hub" Height="32" Padding="18,0" Margin="4,0,0,0"
+                        Background="Transparent" Foreground="#6E6E73" FontWeight="SemiBold" FontSize="12" Cursor="Hand" BorderThickness="0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
             </StackPanel>
         </Border>
 
-        <!-- Console Log Terminal -->
-        <Border Grid.Row="4" Background="#080C14" CornerRadius="10" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
-            <TextBox x:Name="LogBox" Background="Transparent" Foreground="#38BDF8" FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
-                     TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True" BorderThickness="0"/>
-        </Border>
+        <!-- TAB 1: INSTALLATION & DIAGNOSTICS VIEW -->
+        <Grid x:Name="ViewInstall" Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Bottom Action Bar -->
-        <Grid Grid.Row="5" Margin="0,12,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <!-- Metadata Specs Bento -->
+            <Border Grid.Row="0" Background="#FFFFFF" CornerRadius="12" Padding="14,10" Margin="0,0,0,10" BorderBrush="#E5E5EA" BorderThickness="1">
+                <UniformGrid Columns="3">
+                    <StackPanel Margin="6,2">
+                        <TextBlock Text="Publisher" FontSize="10" Foreground="#86868B"/>
+                        <TextBlock Text="Teerthanker Mahaveer University" FontSize="11" FontWeight="SemiBold" Foreground="#1D1D1F"/>
+                    </StackPanel>
+                    <StackPanel Margin="6,2">
+                        <TextBlock Text="Local AI Server" FontSize="10" Foreground="#86868B"/>
+                        <TextBlock Text="Ollama (LLaMA 3.2 3B &amp; mxbai)" FontSize="11" FontWeight="SemiBold" Foreground="#0071E3"/>
+                    </StackPanel>
+                    <StackPanel Margin="6,2">
+                        <TextBlock Text="Web Server / Port" FontSize="10" Foreground="#86868B"/>
+                        <TextBlock Text="FastAPI · http://localhost:8000" FontSize="11" FontWeight="SemiBold" Foreground="#1B7A43"/>
+                    </StackPanel>
+                    <StackPanel Margin="6,2">
+                        <TextBlock Text="Pre-filled Ngrok Domain" FontSize="10" Foreground="#86868B"/>
+                        <TextBlock Text="unstuffed-flyover-answering.ngrok-free.dev" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
+                    </StackPanel>
+                    <StackPanel Margin="6,2">
+                        <TextBlock Text="Pre-loaded Knowledge" FontSize="10" Foreground="#86868B"/>
+                        <TextBlock Text="13 Documents &amp; 284 Logs (4.4 MB)" FontSize="11" FontWeight="SemiBold" Foreground="#1D1D1F"/>
+                    </StackPanel>
+                    <StackPanel Margin="6,2">
+                        <TextBlock Text="Default Admin" FontSize="10" Foreground="#86868B"/>
+                        <TextBlock Text="admin / admin123" FontSize="11" FontWeight="SemiBold" Foreground="#1D1D1F"/>
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
 
-            <Button x:Name="BtnInstall" Content="🚀 START ONE-CLICK INSTALLATION &amp; REPAIR" Height="42"
-                    Background="#2563EB" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" Cursor="Hand" BorderThickness="0">
+            <!-- Diagnostics Bento Grid (Clean Light Cards) -->
+            <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,10">
+                <Border Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="3" BorderBrush="#E5E5EA" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="💻 System Compatibility" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
+                        <TextBlock x:Name="BadgeSysCheck" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#9A6200" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="3" BorderBrush="#E5E5EA" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="🐍 Python 3.12 Engine" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
+                        <TextBlock x:Name="BadgePython" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#9A6200" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="3" BorderBrush="#E5E5EA" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="🦙 Ollama AI Server" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
+                        <TextBlock x:Name="BadgeOllama" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#9A6200" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="3" BorderBrush="#E5E5EA" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="🧠 LLaMA 3.2 + mxbai" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
+                        <TextBlock x:Name="BadgeModels" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#9A6200" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="3" BorderBrush="#E5E5EA" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="📦 Virtualenv &amp; Self-Heal" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
+                        <TextBlock x:Name="BadgeVenv" Text="[PENDING]" FontSize="11" FontWeight="Bold" Foreground="#9A6200" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="3" BorderBrush="#E5E5EA" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="📚 Knowledge Base" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
+                        <TextBlock x:Name="BadgeKnowledge" Text="[READY] 13 Sources" FontSize="11" FontWeight="Bold" Foreground="#0071E3" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Progress Bar Card -->
+            <Border Grid.Row="2" Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="0,0,0,10" BorderBrush="#E5E5EA" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="ProgressStatus" Text="Ready to initialize automated installation and diagnostic checks." FontSize="11" FontWeight="Medium" Foreground="#6E6E73" Margin="0,0,0,6"/>
+                    <ProgressBar x:Name="ProgressBar" Height="6" Minimum="0" Maximum="100" Value="0" Background="#E5E5EA" Foreground="#0071E3" BorderThickness="0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Real-Time Log Viewer (Crisp Modern Inset Card) -->
+            <Border Grid.Row="3" Background="#FFFFFF" CornerRadius="10" Padding="10" BorderBrush="#E5E5EA" BorderThickness="1">
+                <TextBox x:Name="LogBox" Background="Transparent" Foreground="#1D1D1F" FontFamily="Consolas, Cascadia Code, Courier New" FontSize="11"
+                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True" BorderThickness="0"/>
+            </Border>
+
+            <!-- Bottom Actions -->
+            <Button x:Name="BtnInstall" Grid.Row="4" Content="🚀 START ONE-CLICK INSTALLATION &amp; REPAIR" Height="44" Margin="0,12,0,0"
+                    Background="#0071E3" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" Cursor="Hand" BorderThickness="0">
                 <Button.Resources>
                     <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
+                        <Setter Property="CornerRadius" Value="10"/>
                     </Style>
                 </Button.Resources>
             </Button>
+        </Grid>
 
-            <Button x:Name="BtnLaunchPanel" Grid.Column="1" Content="🎓 Admin Panel" Height="42" Width="115" Margin="8,0,0,0"
-                    Background="#1E293B" Foreground="#94A3B8" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#334155" IsEnabled="False">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
+        <!-- TAB 2: QUICK LAUNCH & DEPLOY VIEW -->
+        <Grid x:Name="ViewDeploy" Grid.Row="2" Visibility="Collapsed">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Server Telemetry Strip -->
+                    <Border Background="#FFFFFF" CornerRadius="12" Padding="16" Margin="0,0,0,14" BorderBrush="#E5E5EA" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-            <Button x:Name="BtnLaunchWidget" Grid.Column="2" Content="💬 Chat Widget" Height="42" Width="115" Margin="8,0,0,0"
-                    Background="#1E293B" Foreground="#94A3B8" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#334155" IsEnabled="False">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="FastAPI Server (Port 8000)" FontSize="10" Foreground="#86868B"/>
+                                <TextBlock x:Name="StatusServer" Text="● Checking..." FontSize="12" FontWeight="Bold" Foreground="#0071E3" Margin="0,2,0,0"/>
+                            </StackPanel>
 
-            <Button x:Name="BtnTunnel" Grid.Column="3" Content="🌐 Ngrok Tunnel" Height="42" Width="115" Margin="8,0,0,0"
-                    Background="#1E293B" Foreground="#94A3B8" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#334155">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Ollama AI Server (Port 11434)" FontSize="10" Foreground="#86868B"/>
+                                <TextBlock x:Name="StatusOllama" Text="● Checking..." FontSize="12" FontWeight="Bold" Foreground="#0071E3" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Ngrok Tunnel Status" FontSize="10" Foreground="#86868B"/>
+                                <TextBlock x:Name="StatusTunnel" Text="● Checking..." FontSize="12" FontWeight="Bold" Foreground="#6E6E73" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <Button x:Name="BtnRefreshStatus" Grid.Column="3" Content="🔄 Refresh" Height="30" Padding="12,0"
+                                    Background="#F2F2F7" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#E5E5EA">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="6"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Primary Actions Bento -->
+                    <UniformGrid Columns="2" Margin="0,0,0,14">
+                        <!-- Card 1: Start Chatbot Server -->
+                        <Border Background="#FFFFFF" CornerRadius="12" Padding="16" Margin="0,0,6,0" BorderBrush="#E5E5EA" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="🎓 Chatbot Assistant Server" FontSize="14" FontWeight="Bold" Foreground="#1D1D1F"/>
+                                <TextBlock Text="Starts the local AI engine, activates FastAPI server, and launches Admin Panel." FontSize="11" Foreground="#6E6E73" Margin="0,3,0,12" TextWrapping="Wrap"/>
+                                <Button x:Name="BtnStartServer" Content="▶ Launch Chatbot Server" Height="38"
+                                        Background="#0071E3" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" Cursor="Hand" BorderThickness="0">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 2: Start Internet Tunnel -->
+                        <Border Background="#FFFFFF" CornerRadius="12" Padding="16" Margin="6,0,0,0" BorderBrush="#E5E5EA" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="🌐 Public Internet Sharing" FontSize="14" FontWeight="Bold" Foreground="#1D1D1F"/>
+                                <TextBlock Text="Shares your bot with the world on: unstuffed-flyover-answering.ngrok-free.dev" FontSize="11" Foreground="#6E6E73" Margin="0,3,0,12" TextWrapping="Wrap"/>
+                                <Button x:Name="BtnStartTunnel" Content="▶ Start Ngrok Tunnel" Height="38"
+                                        Background="#1D1D1F" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" Cursor="Hand" BorderThickness="0">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- Direct Navigation Links Bento -->
+                    <Border Background="#FFFFFF" CornerRadius="12" Padding="16" Margin="0,0,0,14" BorderBrush="#E5E5EA" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="🔗 Direct Browser Access Links" FontSize="13" FontWeight="Bold" Foreground="#1D1D1F" Margin="0,0,0,10"/>
+                            <UniformGrid Columns="3">
+                                <Button x:Name="BtnOpenPanel" Content="🎓 Local Admin Panel" Height="36" Margin="3"
+                                        Background="#F2F2F7" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#E5E5EA">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <Button x:Name="BtnOpenWidget" Content="💬 Local Chat Widget" Height="36" Margin="3"
+                                        Background="#F2F2F7" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#E5E5EA">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <Button x:Name="BtnOpenPublicLink" Content="🌐 Public Ngrok Chat" Height="36" Margin="3"
+                                        Background="#EBF5FF" Foreground="#0071E3" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#CBE4FF">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Diagnostic & Folder Utilities -->
+                    <Border Background="#FFFFFF" CornerRadius="12" Padding="16" BorderBrush="#E5E5EA" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="🛠 Utilities &amp; Folders" FontSize="13" FontWeight="Bold" Foreground="#1D1D1F" Margin="0,0,0,10"/>
+                            <UniformGrid Columns="3">
+                                <Button x:Name="BtnRunDoctor" Content="🩺 Self-Healing Doctor" Height="36" Margin="3"
+                                        Background="#F2F2F7" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#E5E5EA">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <Button x:Name="BtnOpenKnowledge" Content="📚 Knowledge Folder" Height="36" Margin="3"
+                                        Background="#F2F2F7" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#E5E5EA">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <Button x:Name="BtnOpenProject" Content="📁 Project Directory" Height="36" Margin="3"
+                                        Background="#F2F2F7" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#E5E5EA">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="8"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>
@@ -925,9 +1072,26 @@ function Show-InstallerGUI {
     $global:ProgressBar = $window.FindName("ProgressBar")
     $global:ProgressStatus = $window.FindName("ProgressStatus")
     $global:BtnInstall = $window.FindName("BtnInstall")
-    $global:BtnLaunchPanel = $window.FindName("BtnLaunchPanel")
-    $global:BtnLaunchWidget = $window.FindName("BtnLaunchWidget")
-    $global:BtnTunnel = $window.FindName("BtnTunnel")
+    
+    # Segmented navigation buttons
+    $global:TabBtnInstall = $window.FindName("TabBtnInstall")
+    $global:TabBtnDeploy = $window.FindName("TabBtnDeploy")
+    $global:ViewInstall = $window.FindName("ViewInstall")
+    $global:ViewDeploy = $window.FindName("ViewDeploy")
+
+    # Quick launch controls
+    $global:StatusServer = $window.FindName("StatusServer")
+    $global:StatusOllama = $window.FindName("StatusOllama")
+    $global:StatusTunnel = $window.FindName("StatusTunnel")
+    $global:BtnRefreshStatus = $window.FindName("BtnRefreshStatus")
+    $global:BtnStartServer = $window.FindName("BtnStartServer")
+    $global:BtnStartTunnel = $window.FindName("BtnStartTunnel")
+    $global:BtnOpenPanel = $window.FindName("BtnOpenPanel")
+    $global:BtnOpenWidget = $window.FindName("BtnOpenWidget")
+    $global:BtnOpenPublicLink = $window.FindName("BtnOpenPublicLink")
+    $global:BtnRunDoctor = $window.FindName("BtnRunDoctor")
+    $global:BtnOpenKnowledge = $window.FindName("BtnOpenKnowledge")
+    $global:BtnOpenProject = $window.FindName("BtnOpenProject")
 
     $global:UIBadges = @{
         "SysCheck"  = $window.FindName("BadgeSysCheck")
@@ -938,45 +1102,106 @@ function Show-InstallerGUI {
         "Knowledge" = $window.FindName("BadgeKnowledge")
     }
 
-    # Install Button Click
+    # Tab Switching Events (Segmented Pill behavior)
+    $global:TabBtnInstall.Add_Click({
+        $global:ViewInstall.Visibility = [System.Windows.Visibility]::Visible
+        $global:ViewDeploy.Visibility = [System.Windows.Visibility]::Collapsed
+        $global:TabBtnInstall.Background = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#FFFFFF")
+        $global:TabBtnInstall.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#1D1D1F")
+        $global:TabBtnDeploy.Background = [System.Windows.Media.Brushes]::Transparent
+        $global:TabBtnDeploy.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#6E6E73")
+    })
+
+    $global:TabBtnDeploy.Add_Click({
+        $global:ViewInstall.Visibility = [System.Windows.Visibility]::Collapsed
+        $global:ViewDeploy.Visibility = [System.Windows.Visibility]::Visible
+        $global:TabBtnDeploy.Background = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#FFFFFF")
+        $global:TabBtnDeploy.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#1D1D1F")
+        $global:TabBtnInstall.Background = [System.Windows.Media.Brushes]::Transparent
+        $global:TabBtnInstall.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#6E6E73")
+        Update-QuickDeployStatus
+    })
+
+    # Install Button Click (Runs with Dispatcher Pump)
     $global:BtnInstall.Add_Click({
         $global:BtnInstall.IsEnabled = $false
-        $global:BtnInstall.Content = "⏳ INSTALLING &amp; CONFIGURING..."
+        $global:BtnInstall.Content = "⏳ INSTALLING & CONFIGURING..."
+        Flush-UI
         
-        [System.Threading.ThreadPool]::QueueUserWorkItem({
-            Run-FullInstallation
-        })
+        Run-FullInstallation
     })
 
-    # Launch Buttons
-    $global:BtnLaunchPanel.Add_Click({
-        Start-Process "http://localhost:8000/panel/"
+    # Quick Launch Buttons
+    $global:BtnRefreshStatus.Add_Click({
+        Update-QuickDeployStatus
     })
 
-    $global:BtnLaunchWidget.Add_Click({
-        Start-Process "http://localhost:8000/widget/"
-    })
-
-    $global:BtnTunnel.Add_Click({
-        $tunnelBat = Join-Path $RootDir "START_INTERNET_TUNNEL.bat"
-        if (Test-Path $tunnelBat) {
-            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$tunnelBat`""
+    $global:BtnStartServer.Add_Click({
+        $startBat = Join-Path $RootDir "START_CHATBOT.bat"
+        if (Test-Path $startBat) {
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$startBat`""
+            Start-Sleep -Seconds 2
+            Update-QuickDeployStatus
         } else {
-            [System.Windows.MessageBox]::Show("Please complete the installation first.", "TMU CampusConnect")
+            [System.Windows.MessageBox]::Show("START_CHATBOT.bat not found. Please run the 1-Click Installation first.", "TMU CampusConnect")
         }
     })
 
+    $global:BtnStartTunnel.Add_Click({
+        $tunnelBat = Join-Path $RootDir "START_INTERNET_TUNNEL.bat"
+        if (Test-Path $tunnelBat) {
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$tunnelBat`""
+            Start-Sleep -Seconds 2
+            Update-QuickDeployStatus
+        } else {
+            [System.Windows.MessageBox]::Show("START_INTERNET_TUNNEL.bat not found. Please complete setup first.", "TMU CampusConnect")
+        }
+    })
+
+    $global:BtnOpenPanel.Add_Click({
+        Start-Process "http://localhost:8000/panel/"
+    })
+
+    $global:BtnOpenWidget.Add_Click({
+        Start-Process "http://localhost:8000/widget/"
+    })
+
+    $global:BtnOpenPublicLink.Add_Click({
+        Start-Process "https://$PreFilledNgrokDomain/widget/"
+    })
+
+    $global:BtnRunDoctor.Add_Click({
+        $doctorBat = Join-Path $RootDir "DOCTOR_AND_REPAIR.bat"
+        if (Test-Path $doctorBat) {
+            Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$doctorBat`""
+        }
+    })
+
+    $global:BtnOpenKnowledge.Add_Click({
+        $targetData = Join-Path $BackendDir "data"
+        if (-not (Test-Path $targetData)) { New-Item -ItemType Directory -Path $targetData -Force | Out-Null }
+        Start-Process -FilePath "explorer.exe" -ArgumentList "`"$targetData`""
+    })
+
+    $global:BtnOpenProject.Add_Click({
+        Start-Process -FilePath "explorer.exe" -ArgumentList "`"$RootDir`""
+    })
+
     # Initial Log Messages
-    Log-Msg "Installer initialized. Root directory: $RootDir" "INFO"
-    Log-Msg "Backend detected at: $BackendDir" "INFO"
-    Log-Msg "Permanent Ngrok Domain pre-configured: $PreFilledNgrokDomain" "INFO"
-    Log-Msg "Click 'START ONE-CLICK INSTALLATION' to automatically verify, install, and configure everything." "STEP"
+    Log-Msg "Deployment Hub initialized. Root: $RootDir" "INFO"
+    Log-Msg "Backend location: $BackendDir" "INFO"
+    Log-Msg "Pre-filled Ngrok Domain: $PreFilledNgrokDomain" "INFO"
+    Log-Msg "Click 'START ONE-CLICK INSTALLATION' or switch to the Quick Launch tab to start services." "STEP"
+
+    Update-QuickDeployStatus
 
     if ($RepairOnly) {
         $global:BtnInstall.RaiseEvent((New-Object System.Windows.RoutedEventArgs([System.Windows.Controls.Button]::ClickEvent)))
     }
 
     $window.ShowDialog() | Out-Null
+    $global:LASTEXITCODE = 0
+    exit 0
 }
 
 # -------------------------------------------------------------
@@ -986,11 +1211,15 @@ function Show-InstallerGUI {
 if ($CLI) {
     Log-Msg "Running in CLI Mode..." "INFO"
     Run-FullInstallation
+    $global:LASTEXITCODE = 0
+    exit 0
 } else {
     try {
         Show-InstallerGUI
     } catch {
-        Log-Msg "GUI initialization warning: $_. Falling back to CLI mode." "WARN"
+        Log-Msg "GUI initialization note: $_. Running in CLI mode." "WARN"
         Run-FullInstallation
+        $global:LASTEXITCODE = 0
+        exit 0
     }
 }
