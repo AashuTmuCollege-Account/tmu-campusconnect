@@ -204,15 +204,14 @@ def generate_answer(
     formatted_system = system_prompt.replace("{university_name}", university_name)
 
     # If no context found, return a helpful no-info message
+    # If no context found, return helpful fallback with Google search link
     if not context_chunks:
+        import urllib.parse
+        google_url = f"https://www.google.com/search?q={urllib.parse.quote(question)}"
         return {
             "answer": (
-                f"I'm sorry, I don't have specific information about that in the "
-                f"{university_name} knowledge base. "
-                f"For accurate details, please contact the university directly:\n\n"
-                f"📞 Toll-Free: 1800-270-1490\n"
-                f"📧 Email: admissions@tmu.ac.in\n"
-                f"🌐 Website: www.tmu.ac.in"
+                f"I'm sorry, I can only answer questions related to the university. "
+                f"You can tap {google_url} to get that answer."
             ),
             "sources": [],
             "rejected": True
@@ -256,6 +255,27 @@ def generate_answer(
                 f"I found some information but could not generate a response. "
                 f"Please contact {university_name} at 1800-270-1490 for assistance."
             )
+
+        # Detect if the LLM itself rejected the question
+        REJECTION_PHRASES = [
+            "i'm sorry, i can only answer",
+            "i am sorry, i can only answer",
+            "i cannot answer questions unrelated",
+            "i can't answer questions unrelated",
+            "not related to the university",
+            "only answer questions related to the university",
+        ]
+        answer_lower = answer.lower()
+        is_rejected = any(phrase in answer_lower for phrase in REJECTION_PHRASES)
+
+        if is_rejected:
+            import urllib.parse
+            google_url = f"https://www.google.com/search?q={urllib.parse.quote(question)}"
+            answer = (
+                f"I'm sorry, I can only answer questions related to the university. "
+                f"You can tap {google_url} to get that answer."
+            )
+            return {"answer": answer, "sources": [], "rejected": True}
 
         return {"answer": answer, "sources": sources, "rejected": False}
 

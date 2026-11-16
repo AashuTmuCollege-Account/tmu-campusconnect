@@ -758,9 +758,12 @@ function Show-InstallerGUI {
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
-                <!-- University App Icon -->
-                <Border Width="48" Height="48" CornerRadius="12" Background="#0071E3">
-                    <TextBlock Text="🎓" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <!-- University App Icon (TMU Amber + Logo) -->
+                <Border Width="48" Height="48" CornerRadius="12" Background="#FFF8E7" BorderBrush="#FFB106" BorderThickness="1.5">
+                    <Grid>
+                        <Image x:Name="AppLogoImage" Stretch="Uniform" Margin="3"/>
+                        <TextBlock x:Name="AppLogoFallback" Text="🎓" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
                 </Border>
 
                 <!-- Title & Tags -->
@@ -773,8 +776,11 @@ function Show-InstallerGUI {
                         <Border Background="#F2F2F7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
                             <TextBlock Text="offline-llm" FontSize="10" FontWeight="Medium" Foreground="#6E6E73"/>
                         </Border>
+                        <Border Background="#FFF8E7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                            <TextBlock Text="tmu-amber" FontSize="10" FontWeight="SemiBold" Foreground="#E69500"/>
+                        </Border>
                         <Border Background="#F2F2F7" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
-                            <TextBlock Text="llama-3.2-3b" FontSize="10" FontWeight="Medium" Foreground="#0071E3"/>
+                            <TextBlock Text="llama-3.2-3b" FontSize="10" FontWeight="Medium" Foreground="#E69500"/>
                         </Border>
                         <Border Background="#F2F2F7" CornerRadius="4" Padding="6,2">
                             <TextBlock Text="chromadb-rag" FontSize="10" FontWeight="Medium" Foreground="#6E6E73"/>
@@ -887,7 +893,7 @@ function Show-InstallerGUI {
                 <Border Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="3" BorderBrush="#E5E5EA" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="📚 Knowledge Base" FontSize="11" FontWeight="SemiBold" Foreground="#6E6E73"/>
-                        <TextBlock x:Name="BadgeKnowledge" Text="[READY] 13 Sources" FontSize="11" FontWeight="Bold" Foreground="#0071E3" Margin="0,3,0,0"/>
+                        <TextBlock x:Name="BadgeKnowledge" Text="[READY] 13 Sources" FontSize="11" FontWeight="Bold" Foreground="#E69500" Margin="0,3,0,0"/>
                     </StackPanel>
                 </Border>
             </UniformGrid>
@@ -896,7 +902,7 @@ function Show-InstallerGUI {
             <Border Grid.Row="2" Background="#FFFFFF" CornerRadius="10" Padding="12" Margin="0,0,0,10" BorderBrush="#E5E5EA" BorderThickness="1">
                 <StackPanel>
                     <TextBlock x:Name="ProgressStatus" Text="Ready to initialize automated installation and diagnostic checks." FontSize="11" FontWeight="Medium" Foreground="#6E6E73" Margin="0,0,0,6"/>
-                    <ProgressBar x:Name="ProgressBar" Height="6" Minimum="0" Maximum="100" Value="0" Background="#E5E5EA" Foreground="#0071E3" BorderThickness="0"/>
+                    <ProgressBar x:Name="ProgressBar" Height="6" Minimum="0" Maximum="100" Value="0" Background="#E5E5EA" Foreground="#FFB106" BorderThickness="0"/>
                 </StackPanel>
             </Border>
 
@@ -908,7 +914,7 @@ function Show-InstallerGUI {
 
             <!-- Bottom Actions -->
             <Button x:Name="BtnInstall" Grid.Row="4" Content="🚀 START ONE-CLICK INSTALLATION &amp; REPAIR" Height="44" Margin="0,12,0,0"
-                    Background="#0071E3" Foreground="#FFFFFF" FontWeight="Bold" FontSize="13" Cursor="Hand" BorderThickness="0">
+                    Background="#FFB106" Foreground="#2D1A00" FontWeight="Bold" FontSize="13" Cursor="Hand" BorderThickness="0">
                 <Button.Resources>
                     <Style TargetType="Border">
                         <Setter Property="CornerRadius" Value="10"/>
@@ -965,7 +971,7 @@ function Show-InstallerGUI {
                                 <TextBlock Text="🎓 Chatbot Assistant Server" FontSize="14" FontWeight="Bold" Foreground="#1D1D1F"/>
                                 <TextBlock Text="Starts the local AI engine, activates FastAPI server, and launches Admin Panel." FontSize="11" Foreground="#6E6E73" Margin="0,3,0,12" TextWrapping="Wrap"/>
                                 <Button x:Name="BtnStartServer" Content="▶ Launch Chatbot Server" Height="38"
-                                        Background="#0071E3" Foreground="#FFFFFF" FontWeight="Bold" FontSize="12" Cursor="Hand" BorderThickness="0">
+                                        Background="#FFB106" Foreground="#2D1A00" FontWeight="Bold" FontSize="12" Cursor="Hand" BorderThickness="0">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="8"/>
@@ -1005,8 +1011,8 @@ function Show-InstallerGUI {
                                         </Style>
                                     </Button.Resources>
                                 </Button>
-                                <Button x:Name="BtnOpenWidget" Content="💬 Local Chat Widget" Height="36" Margin="3"
-                                        Background="#F2F2F7" Foreground="#1D1D1F" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#E5E5EA">
+                                <Button x:Name="BtnOpenWidget" Content="💬 TMU Amber Chat Widget" Height="36" Margin="3"
+                                        Background="#FFF8E7" Foreground="#996000" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#FFD37A">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="8"/>
@@ -1014,7 +1020,7 @@ function Show-InstallerGUI {
                                     </Button.Resources>
                                 </Button>
                                 <Button x:Name="BtnOpenPublicLink" Content="🌐 Public Ngrok Chat" Height="36" Margin="3"
-                                        Background="#EBF5FF" Foreground="#0071E3" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#CBE4FF">
+                                        Background="#FFF3E0" Foreground="#E65100" FontWeight="SemiBold" FontSize="11" Cursor="Hand" BorderThickness="1" BorderBrush="#FFE0B2">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="8"/>
@@ -1072,6 +1078,29 @@ function Show-InstallerGUI {
     $global:ProgressBar = $window.FindName("ProgressBar")
     $global:ProgressStatus = $window.FindName("ProgressStatus")
     $global:BtnInstall = $window.FindName("BtnInstall")
+
+    # Load TMU Brand Logo dynamically if present
+    $logoImg = $window.FindName("AppLogoImage")
+    $logoFallback = $window.FindName("AppLogoFallback")
+    $possibleLogoPaths = @(
+        (Join-Path $RootDir "widget\tmu-logo.png"),
+        (Join-Path $RootDir "assets\tmu-logo.png"),
+        (Join-Path $RootDir "03 - Chatbot App\widget\tmu-logo.png")
+    )
+    foreach ($lp in $possibleLogoPaths) {
+        if (Test-Path $lp) {
+            try {
+                $bitmap = New-Object System.Windows.Media.Imaging.BitmapImage
+                $bitmap.BeginInit()
+                $bitmap.UriSource = New-Object System.Uri($lp, [System.UriKind]::Absolute)
+                $bitmap.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+                $bitmap.EndInit()
+                if ($logoImg) { $logoImg.Source = $bitmap }
+                if ($logoFallback) { $logoFallback.Visibility = [System.Windows.Visibility]::Collapsed }
+                break
+            } catch {}
+        }
+    }
     
     # Segmented navigation buttons
     $global:TabBtnInstall = $window.FindName("TabBtnInstall")

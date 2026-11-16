@@ -3,762 +3,386 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>University AI Chatbot – Complete Setup Guide</title>
+<title>TMU CampusConnect – Complete Setup &amp; Deployment Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --blue:   #1d4ed8;
-    --blue2:  #3b82f6;
-    --indigo: #4338ca;
-    --green:  #15803d;
-    --green2: #dcfce7;
-    --red:    #b91c1c;
-    --red2:   #fee2e2;
-    --yellow: #92400e;
-    --yellow2:#fef3c7;
-    --gray:   #f8fafc;
-    --border: #e2e8f0;
-    --text:   #0f172a;
-    --muted:  #64748b;
+    --accent:     #FFB106;       /* TMU Amber brand color */
+    --accent2:    #e69500;       /* Deep amber for gradients/hover */
+    --accent-red: #C0392B;       /* TMU red from logo outer ring */
+    --bg:         #F5F2EB;       /* Cloudy warm white */
+    --card-bg:    #FFFFFF;       /* Pure white card container */
+    --border:     rgba(220,180,50,0.3);
+    --border-subtle: #E8E5DD;
+    --text:       #2D1A00;       /* Dark brown text for high readability */
+    --text-muted: #7A5C1E;       /* Muted amber-brown */
+    --radius:     14px;
+    --shadow:     0 4px 20px rgba(45,26,0,0.06);
   }
 
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--text);
-    background: #fff;
-    font-size: 13px;
-    line-height: 1.65;
-    max-width: 900px;
+    background: var(--bg);
+    font-size: 13.5px;
+    line-height: 1.7;
+    max-width: 960px;
     margin: 0 auto;
-    padding: 40px 48px;
+    padding: 40px 32px 80px;
   }
 
   /* ── Cover Page ─────────────────────────── */
   .cover {
     text-align: center;
     padding: 60px 40px 50px;
-    background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 50%, #4338ca 100%);
-    border-radius: 16px;
+    background: linear-gradient(135deg, #FFB106 0%, #e69500 50%, #c97d00 100%);
+    border-radius: 20px;
     color: #fff;
-    margin-bottom: 48px;
-    page-break-after: always;
-  }
-  .cover-emoji { font-size: 72px; margin-bottom: 16px; display: block; }
-  .cover h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
-  .cover .subtitle { font-size: 17px; opacity: 0.85; margin-bottom: 32px; font-weight: 300; }
-  .cover-divider { width: 60px; height: 3px; background: rgba(255,255,255,0.4); margin: 24px auto; border-radius: 2px; }
-  .cover-meta { font-size: 13px; opacity: 0.75; line-height: 2; }
-  .cover-meta strong { opacity: 1; font-weight: 600; }
-
-  /* ── TOC ────────────────────────────────── */
-  .toc {
-    background: var(--gray);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px 32px;
     margin-bottom: 40px;
-    page-break-after: always;
+    box-shadow: 0 10px 30px rgba(230,149,0,0.25);
+    position: relative;
+    overflow: hidden;
   }
-  .toc h2 { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--blue); border-bottom: 2px solid var(--blue2); padding-bottom: 8px; }
-  .toc-part { margin-bottom: 10px; }
-  .toc-part-title { font-weight: 700; font-size: 13px; color: var(--indigo); margin-bottom: 3px; }
-  .toc-step { font-size: 12px; color: var(--muted); padding-left: 16px; line-height: 1.8; }
-  .toc-step::before { content: "→ "; color: var(--blue2); }
-  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; }
-
-  /* ── Section Headers ────────────────────── */
-  .part-header {
-    background: linear-gradient(135deg, #1e3a5f, #1d4ed8);
-    color: #fff;
-    padding: 18px 24px;
-    border-radius: 10px;
-    margin: 40px 0 24px;
-    page-break-before: always;
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
   }
-  .part-header:first-of-type { page-break-before: avoid; }
-  .part-num { font-size: 11px; font-weight: 600; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-  .part-title { font-size: 20px; font-weight: 800; }
-
-  /* ── Steps ──────────────────────────────── */
-  .step {
-    margin-bottom: 28px;
-    border-left: 4px solid var(--blue2);
-    padding-left: 18px;
-  }
-  .step-header {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-  }
-  .step-num {
-    background: var(--blue);
-    color: #fff;
-    font-size: 11px; font-weight: 700;
-    width: 28px; height: 28px; border-radius: 50%;
+  .cover-logo {
+    width: 90px; height: 90px;
+    background: #fff;
+    border-radius: 50%;
+    padding: 6px;
+    margin: 0 auto 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
   }
-  .step-title { font-size: 15px; font-weight: 700; color: var(--blue); }
-  .step p { color: #334155; margin-bottom: 8px; }
+  .cover-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+  .cover h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .cover .subtitle { font-size: 16px; opacity: 0.95; margin-bottom: 24px; font-weight: 400; }
+  .cover-divider { width: 70px; height: 4px; background: rgba(255,255,255,0.45); margin: 20px auto; border-radius: 2px; }
+  .cover-meta { font-size: 13px; opacity: 0.9; line-height: 2.2; }
+  .cover-meta strong { font-weight: 700; color: #fff; }
 
-  /* ── Code blocks ────────────────────────── */
-  code {
-    font-family: 'JetBrains Mono', monospace;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 5px;
-    padding: 2px 6px;
+  /* ── Pill Badges ── */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .badge-amber { background: #FFF3D6; color: #9A6200; border: 1px solid #FFE08A; }
+  .badge-green { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+  .badge-red   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+  .badge-blue  { background: #E0F2FE; color: #075985; border: 1px solid #BAE6FD; }
+
+  /* ── Bento Grid ── */
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .bento-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .bento-card h3 {
+    font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--accent2);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── Content Sections ── */
+  .section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 30px 32px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+  }
+  .section-title {
+    font-size: 18px; font-weight: 800; color: var(--text);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 2px solid rgba(255,177,6,0.3); padding-bottom: 10px;
+  }
+
+  /* ── Code Blocks ── */
+  pre, code {
+    font-family: 'JetBrains Mono', Consolas, monospace;
     font-size: 12px;
-    color: #1e40af;
+  }
+  code {
+    background: #FFF5E0; color: #9A6200; padding: 2px 6px; border-radius: 4px; font-weight: 500;
   }
   pre {
-    font-family: 'JetBrains Mono', monospace;
-    background: #0f172a;
-    color: #e2e8f0;
-    border-radius: 8px;
-    padding: 16px 18px;
-    font-size: 12px;
-    line-height: 1.7;
-    margin: 10px 0;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
+    background: #2D1A00; color: #FFF8E7; padding: 16px 20px; border-radius: 10px;
+    overflow-x: auto; margin: 12px 0 16px; line-height: 1.5; border-left: 4px solid var(--accent);
   }
-  pre .comment { color: #64748b; }
-  pre .highlight { color: #86efac; }
 
-  /* ── Alerts ─────────────────────────────── */
-  .alert {
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 12px 0;
-    display: flex;
-    gap: 10px;
-    font-size: 12.5px;
-    line-height: 1.6;
+  /* ── Tables ── */
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px;
   }
-  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .alert.critical { background: var(--red2); border-left: 4px solid var(--red); }
-  .alert.critical .alert-icon::before { content: "⚠️"; }
-  .alert.tip { background: var(--green2); border-left: 4px solid var(--green); }
-  .alert.tip .alert-icon::before { content: "💡"; }
-  .alert.info { background: #eff6ff; border-left: 4px solid var(--blue2); }
-  .alert.info .alert-icon::before { content: "ℹ️"; }
-  .alert.warning { background: var(--yellow2); border-left: 4px solid #f59e0b; }
-  .alert.warning .alert-icon::before { content: "⏳"; }
-
-  /* ── Tables ─────────────────────────────── */
-  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 12.5px; }
+  th, td {
+    padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-subtle);
+  }
   th {
-    background: #1e3a5f; color: #fff;
-    padding: 9px 12px; text-align: left;
-    font-weight: 600; font-size: 12px;
+    background: #FAF7F0; font-weight: 700; color: var(--text-muted); font-size: 11.5px; text-transform: uppercase;
   }
-  td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
-  tr:nth-child(even) td { background: var(--gray); }
-  tr:hover td { background: #eff6ff; }
 
-  /* ── Numbered list ──────────────────────── */
-  ol.steps { padding-left: 22px; }
-  ol.steps li { margin-bottom: 8px; color: #334155; }
-  ol.steps li strong { color: var(--text); }
-
-  ul.checks { list-style: none; padding-left: 0; }
-  ul.checks li { padding-left: 24px; position: relative; margin-bottom: 6px; }
-  ul.checks li::before { content: "☐"; position: absolute; left: 0; color: var(--blue); font-size: 14px; }
-
-  /* ── Quick Ref Card ─────────────────────── */
+  /* ── Quick Reference Print Card ── */
   .ref-card {
-    background: #0f172a;
-    color: #e2e8f0;
-    border-radius: 12px;
-    padding: 24px 28px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 2;
-    margin: 24px 0;
-    page-break-inside: avoid;
+    background: linear-gradient(135deg, #2D1A00 0%, #422800 100%);
+    color: #FFF8E7;
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin: 30px 0;
+    box-shadow: 0 10px 30px rgba(45,26,0,0.3);
+    border: 2px solid var(--accent);
   }
-  .ref-card .rc-title { color: #93c5fd; font-weight: 700; font-size: 13px; margin-bottom: 4px; }
-  .ref-card .rc-label { color: #94a3b8; }
-  .ref-card .rc-val { color: #86efac; }
+  .ref-card h2 { color: var(--accent); font-size: 20px; margin-bottom: 16px; font-weight: 800; }
+  .ref-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .ref-label { font-weight: 600; color: rgba(255,255,255,0.7); font-size: 12px; }
+  .ref-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #FFF; font-weight: 600; }
 
-  /* ── Dividers ───────────────────────────── */
-  hr { border: none; border-top: 2px solid var(--border); margin: 32px 0; }
-
-  /* ── Inline badge ───────────────────────── */
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
+  /* ── Step Cards ── */
+  .step-box {
+    background: #FAF8F2;
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 12px 0 16px;
   }
-  .badge-blue { background: #dbeafe; color: #1d4ed8; }
-  .badge-green { background: var(--green2); color: var(--green); }
-  .badge-red { background: var(--red2); color: var(--red); }
+  .step-num { font-weight: 800; color: var(--accent2); font-size: 14px; margin-right: 6px; }
 
-  /* ── Print styles ───────────────────────── */
-  @media print {
-    body { padding: 0; max-width: 100%; font-size: 12px; }
-    .cover { border-radius: 0; margin-bottom: 0; }
-    .part-header { page-break-before: always; }
-    .step { page-break-inside: avoid; }
-    pre { page-break-inside: avoid; }
-    table { page-break-inside: avoid; }
-    .ref-card { page-break-inside: avoid; }
-    a { color: inherit; text-decoration: none; }
+  @media (max-width: 600px) {
+    body { padding: 20px 16px 60px; }
+    .cover { padding: 40px 20px; }
+    .section-card { padding: 20px 18px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ══════════ COVER PAGE ══════════ -->
-<div class="cover">
-  <span class="cover-emoji">🎓</span>
-  <h1>University AI Chatbot</h1>
-  <div class="subtitle">Complete Setup Guide — From Zero to Live</div>
-  <div class="cover-divider"></div>
-  <div class="cover-meta">
-    <strong>For:</strong> Anyone who knows how to turn on a Windows PC<br>
-    <strong>Covers:</strong> Installation · Configuration · Internet Access · 24/7 Operation<br>
-    <strong>Total Steps:</strong> 30 Steps across 11 Parts<br>
-    <strong>Estimated Time:</strong> 1.5 – 2 hours<br>
-    <strong>Generated:</strong> May 2026
-  </div>
-</div>
-
-<!-- ══════════ TABLE OF CONTENTS ══════════ -->
-<div class="toc">
-  <h2>📋 Table of Contents</h2>
-  <div class="toc-grid">
-    <div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 1 — Install Python</div>
-        <div class="toc-step">Step 1–4: Download &amp; Install Python</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 2 — Install Ollama</div>
-        <div class="toc-step">Step 5–6: Download &amp; Install Ollama</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 3 — Download AI Models</div>
-        <div class="toc-step">Step 7–10: Pull llama3 &amp; embedding model</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 4 — Set Up Chatbot Software</div>
-        <div class="toc-step">Step 11–13: Run setup, configure .env</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 5 — Start the Chatbot</div>
-        <div class="toc-step">Step 14–16: Launch server, first login</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 6 — Add University Knowledge</div>
-        <div class="toc-step">Step 17–19: Upload text &amp; PDFs, test bot</div>
-      </div>
+  <!-- Cover Header -->
+  <div class="cover">
+    <div class="cover-logo">
+      <img src="widget/tmu-logo.png" alt="TMU Logo" onerror="this.src='tmu-logo.png'" />
     </div>
-    <div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 7 — Enable Internet Access</div>
-        <div class="toc-step">Step 20–22: Cloudflare Tunnel setup</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 8 — Create User Accounts</div>
-        <div class="toc-step">Step 23–25: Teacher &amp; student accounts</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 9 — Embed on Website</div>
-        <div class="toc-step">Step 26–27: Add chat button to website</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 10 — 24/7 Auto Operation</div>
-        <div class="toc-step">Step 28–30: Auto-login, startup, no sleep</div>
-      </div>
-      <div class="toc-part">
-        <div class="toc-part-title">PART 11 — Daily Usage</div>
-        <div class="toc-step">Quick reference, troubleshooting, security</div>
-      </div>
+    <h1>TMU CampusConnect</h1>
+    <div class="subtitle">Complete Setup, Universal Installer &amp; Deployment Manual</div>
+    <div class="cover-divider"></div>
+    <div class="cover-meta">
+      <strong>Institution:</strong> Teerthanker Mahaveer University (TMU)<br />
+      <strong>Brand Aesthetic:</strong> TMU Amber (<code>#FFB106</code>) &amp; Deep Amber (<code>#E69500</code>)<br />
+      <strong>AI Engine:</strong> LLaMA 3.2 3B &amp; mxbai-embed-large (100% On-Premise / Zero Cloud Costs)<br />
+      <strong>Permanent Ngrok Domain:</strong> <code>unstuffed-flyover-answering.ngrok-free.dev</code>
     </div>
   </div>
-</div>
 
-<!-- ══════════ PART 1 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 1 of 11</div>
-  <div class="part-title">Install Python</div>
-</div>
-
-<p style="margin-bottom:16px; color:#334155;">Python is the programming language the chatbot is built with. You need Python installed to run it — like needing Microsoft Word to open .docx files.</p>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">1</div><div class="step-title">Open a Web Browser</div></div>
-  <p>Look at the bottom of your screen (the taskbar). Click on <strong>Google Chrome 🔵</strong>, <strong>Microsoft Edge 🔷</strong>, or any browser icon.</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">2</div><div class="step-title">Go to the Python Download Page</div></div>
-  <p>Click inside the browser address bar at the top. Delete everything there. Type exactly:</p>
-  <pre>https://www.python.org/downloads/</pre>
-  <p>Press <strong>Enter</strong>.</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">3</div><div class="step-title">Download Python</div></div>
-  <p>You will see a big yellow button: <strong>"Download Python 3.12.x"</strong> (number may vary — that is fine).</p>
-  <p>Click that button. A file downloads to your <strong>Downloads</strong> folder.</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">4</div><div class="step-title">Install Python</div></div>
-  <ol class="steps">
-    <li>Open your <strong>Downloads</strong> folder (folder icon 📁 on taskbar → Downloads on left side)</li>
-    <li>Find the file named <code>python-3.12.x-amd64.exe</code> — double-click it</li>
-    <li>A blue/white installer window opens</li>
-  </ol>
-
-  <div class="alert critical">
-    <div class="alert-icon"></div>
-    <div><strong>CRITICAL — Do NOT miss this!</strong><br>
-    At the <strong>bottom</strong> of the installer window, you will see a checkbox:<br>
-    <code>☐ Add Python to PATH</code><br>
-    <strong>TICK THAT CHECKBOX</strong> by clicking on it. If you skip this, nothing will work.</div>
+  <!-- Architecture Overview Bento -->
+  <div class="bento-grid">
+    <div class="bento-card">
+      <h3>🚀 One-Click Universal Hub</h3>
+      <p>Automated zero-config Windows installer and system doctor with dual-tab navigation for 1-click health diagnostics and instant app deployment.</p>
+    </div>
+    <div class="bento-card">
+      <h3>🎨 TMU Amber Brand Widget</h3>
+      <p>Polished chatbox with official TMU logo avatar, 15-minute inactivity session clear, restart chat button, and long-press admin access.</p>
+    </div>
+    <div class="bento-card">
+      <h3>🛡️ Privacy-First RAG Pipeline</h3>
+      <p>FastAPI + ChromaDB local vector store serving 13 verified TMU knowledge documents with automatic out-of-scope Google search fallbacks.</p>
+    </div>
   </div>
 
-  <ol class="steps" start="4">
-    <li>Click the big button: <strong>"Install Now"</strong></li>
-    <li>If Windows asks "Do you want to allow this app to make changes?" — click <strong>Yes</strong></li>
-    <li>Wait 3–5 minutes. When it says <strong>"Setup was successful"</strong> — click <strong>Close</strong></li>
-  </ol>
+  <!-- SECTION 1: ONE-CLICK INSTALLATION -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>🚀</span>
+      <span>Method 1: One-Click Automated Installer (Recommended)</span>
+    </div>
+    <p>Everything required to run TMU CampusConnect has been fully automated into a modern, light-themed universal installer.</p>
 
-  <div class="alert tip">
-    <div class="alert-icon"></div>
-    <div><strong>Verify Python installed:</strong> Press ⊞ Windows → type <code>cmd</code> → Enter → black window opens → type <code>python --version</code> → press Enter. You should see <code>Python 3.12.x</code>. If so, close the window. ✅</div>
+    <div class="step-box">
+      <span class="step-num">Step 1:</span>
+      <strong>Launch Installer</strong>
+      <p>Double-click <code>ONE_CLICK_INSTALLER.bat</code> in the project directory. The Pristine Light GUI will launch automatically.</p>
+    </div>
+
+    <div class="step-box">
+      <span class="step-num">Step 2:</span>
+      <strong>Click "START ONE-CLICK INSTALLATION &amp; REPAIR"</strong>
+      <p>The installer executes 6 automated diagnostic stages:</p>
+      <ul style="padding-left: 20px; margin-top: 6px;">
+        <li><strong>Stage 1:</strong> System Compatibility &amp; Windows RAM verification (12 GB detected).</li>
+        <li><strong>Stage 2:</strong> Python 3.12 Engine detection &amp; environment validation.</li>
+        <li><strong>Stage 3:</strong> Ollama AI Server daemon check &amp; automatic background startup.</li>
+        <li><strong>Stage 4:</strong> Local model verification (<code>llama3.2:3b</code> and <code>mxbai-embed-large</code>).</li>
+        <li><strong>Stage 5:</strong> Virtual environment dependency healing via <code>requirements.txt</code>.</li>
+        <li><strong>Stage 6:</strong> Preloaded TMU Knowledge Base verification (13 sources, 284 logs).</li>
+      </ul>
+    </div>
+
+    <div class="step-box">
+      <span class="step-num">Step 3:</span>
+      <strong>Switch to "Quick Launch &amp; Deploy Hub" Tab</strong>
+      <p>Use the segmented pill bar at the top to access instant launch buttons for the local server, ngrok tunnel, and browser apps.</p>
+    </div>
   </div>
-</div>
 
-<!-- ══════════ PART 2 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 2 of 11</div>
-  <div class="part-title">Install Ollama (The AI Engine)</div>
-</div>
+  <!-- SECTION 2: CHATBOT WIDGET FEATURES -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>💬</span>
+      <span>TMU Amber Chat Widget Features</span>
+    </div>
+    <p>The chatbox widget has been styled with TMU's official brand design and packed with production-ready student features:</p>
 
-<p style="margin-bottom:16px; color:#334155;">Ollama runs the AI model on your local computer. Think of Ollama as a "player app" and the AI models (downloaded next) as the content it plays.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Implementation Details</th>
+          <th>Student Benefit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>TMU Amber Palette</strong></td>
+          <td><code>--accent: #FFB106</code>, <code>--accent2: #e69500</code>, <code>--bg: #F5F2EB</code></td>
+          <td>Consistent, recognizable university branding.</td>
+        </tr>
+        <tr>
+          <td><strong>Official TMU Logo</strong></td>
+          <td>Embedded in header avatar and welcome banner</td>
+          <td>Instant university identity verification.</td>
+        </tr>
+        <tr>
+          <td><strong>Restart Chat Button</strong></td>
+          <td>Header restart icon (<code>#restart-btn</code>)</td>
+          <td>One-click session wipe to start a fresh topic.</td>
+        </tr>
+        <tr>
+          <td><strong>Secret Admin Shortcut</strong></td>
+          <td>Long-press (800ms) header avatar on mobile or desktop</td>
+          <td>Direct shortcut to <code>/panel/</code> without exposing public links.</td>
+        </tr>
+        <tr>
+          <td><strong>15-Min Inactivity Clear</strong></td>
+          <td>Auto-clears after 15 min idle time</td>
+          <td>Protects student privacy on shared library computers.</td>
+        </tr>
+        <tr>
+          <td><strong>Auto-Adapting Origin</strong></td>
+          <td><code>window.location.origin + '/api/chat'</code></td>
+          <td>Works identically on localhost and public ngrok URL.</td>
+        </tr>
+        <tr>
+          <td><strong>Clickable Pill Links</strong></td>
+          <td>Auto-regex converts URLs &amp; phones to pills</td>
+          <td>Tappable phone numbers and Google search links.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-<div class="step">
-  <div class="step-header"><div class="step-num">5</div><div class="step-title">Download Ollama</div></div>
-  <p>In your browser, go to:</p>
-  <pre>https://ollama.com/download/windows</pre>
-  <p>Click <strong>"Download for Windows"</strong>. A file called <code>OllamaSetup.exe</code> downloads.</p>
-</div>
+  <!-- SECTION 3: WEBSITE INTEGRATION -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>🌐</span>
+      <span>Embedding on University Websites &amp; Portals</span>
+    </div>
+    <p>You can embed the TMU CampusConnect chatbot on any webpage or portal in 3 distinct ways:</p>
 
-<div class="step">
-  <div class="step-header"><div class="step-num">6</div><div class="step-title">Install Ollama</div></div>
-  <ol class="steps">
-    <li>Go to Downloads folder → double-click <code>OllamaSetup.exe</code></li>
-    <li>If Windows asks permission — click <strong>Yes</strong></li>
-    <li>Ollama installs automatically (no questions asked)</li>
-    <li>Look at the <strong>bottom-right corner</strong> of your screen near the clock — you will see a small 🦙 llama icon</li>
-  </ol>
-  <div class="alert tip"><div class="alert-icon"></div><div>That 🦙 icon = Ollama is running. ✅</div></div>
-</div>
+    <h4 style="margin-top:16px; margin-bottom:8px; color:var(--accent2);">Option A: Standard Floating Widget (Every Webpage)</h4>
+    <p>Add this single line before the closing <code>&lt;/body&gt;</code> tag of your university website:</p>
+    <pre>&lt;!-- TMU CampusConnect Floating Assistant --&gt;
+&lt;script src="https://unstuffed-flyover-answering.ngrok-free.dev/widget/embed.js"&gt;&lt;/script&gt;</pre>
 
-<!-- ══════════ PART 3 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 3 of 11</div>
-  <div class="part-title">Download AI Models (The Brain)</div>
-</div>
+    <h4 style="margin-top:20px; margin-bottom:8px; color:var(--accent2);">Option B: Left-Docked Portal Embed</h4>
+    <p>For side-panel layouts such as student ERPs or administrative dashboards:</p>
+    <pre>&lt;!-- TMU Left-Docked Embed --&gt;
+&lt;script src="https://unstuffed-flyover-answering.ngrok-free.dev/widget/embed-left.js"&gt;&lt;/script&gt;</pre>
 
-<div class="alert warning"><div class="alert-icon"></div><div><strong>Download size: ~5.4 GB total.</strong> Make sure your internet is stable. This may take 20–60 minutes. Do not close the window while downloading.</div></div>
+    <h4 style="margin-top:20px; margin-bottom:8px; color:var(--accent2);">Option C: Tampermonkey Userscript (portal2.tmu.ac.in)</h4>
+    <p>To inject the assistant directly onto the live TMU ERP portal without server-side access, install the pre-configured script from <code>widget/tampermonkey-tmu.user.js</code> in the Tampermonkey browser extension.</p>
+  </div>
 
-<table>
-  <tr><th>Model</th><th>Size</th><th>What it does</th></tr>
-  <tr><td><code>llama3:8b</code></td><td>~4.7 GB</td><td>Reads questions and writes answers</td></tr>
-  <tr><td><code>mxbai-embed-large</code></td><td>~670 MB</td><td>Searches through university documents</td></tr>
-</table>
+  <!-- SECTION 4: USER ROLES -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>👥</span>
+      <span>User Access Levels &amp; Admin Panel</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Capabilities</th>
+          <th>Login Required?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-amber">Admin</span></td>
+          <td>Full control: Manage users, upload/delete knowledge, inspect chat logs, configure system prompt.</td>
+          <td>Yes (Pre-configured: <code>admin / admin123</code>)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Teacher</span></td>
+          <td>Upload course syllabus, FAQ documents, and manage own uploaded knowledge files.</td>
+          <td>Yes (Created by Admin)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">Student</span></td>
+          <td>Ask admissions, fee, syllabus, hostel, and campus queries freely.</td>
+          <td>No login required (Open access)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-<div class="step">
-  <div class="step-header"><div class="step-num">7</div><div class="step-title">Open Command Prompt</div></div>
-  <p>Press <strong>⊞ Windows key</strong> → type <code>cmd</code> → press <strong>Enter</strong>. The black Command Prompt window opens.</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">8</div><div class="step-title">Download the Main AI Model</div></div>
-  <p>In the black window, type exactly and press <strong>Enter</strong>:</p>
-  <pre>ollama pull llama3:8b</pre>
-  <p>A progress bar appears. Wait for it to finish and show <code>success</code>. This takes 20–40 minutes.</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">9</div><div class="step-title">Download the Embedding Model</div></div>
-  <p>In the same black window, type and press <strong>Enter</strong>:</p>
-  <pre>ollama pull mxbai-embed-large</pre>
-  <p>Wait for <code>success</code>. (~5–15 minutes)</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">10</div><div class="step-title">Confirm Both Models Downloaded</div></div>
-  <pre>ollama list</pre>
-  <p>You should see both models listed. Close the black window. ✅</p>
-</div>
-
-<!-- ══════════ PART 4 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 4 of 11</div>
-  <div class="part-title">Set Up the Chatbot Software</div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">11</div><div class="step-title">Open the Chatbot Folder</div></div>
-  <ol class="steps">
-    <li>Press <strong>⊞ Windows key + E</strong> — File Explorer opens</li>
-    <li>Click the address bar at the top of File Explorer</li>
-    <li>Delete everything there, then type exactly:</li>
-  </ol>
-  <pre>C:\Users\Aashutosh Singh Rawa\.gemini\antigravity\scratch\university-chatbot\backend</pre>
-  <p>Press <strong>Enter</strong>. You will see the chatbot files.</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">12</div><div class="step-title">Run the Setup Script (ONE TIME ONLY)</div></div>
-  <p>Find <strong><code>SETUP.bat</code></strong> in this folder. <strong>Double-click it.</strong></p>
-  <p>A black window runs automatically. It installs extra tools. Wait for:</p>
-  <pre><span class="highlight">Setup Complete!</span>
-Run START_SERVER.bat to launch the chatbot.
-Press any key to continue . . .</pre>
-  <p>Press any key. Window closes. ✅</p>
-  <div class="alert tip"><div class="alert-icon"></div><div>If the window closes immediately: right-click <code>SETUP.bat</code> → <strong>"Run as administrator"</strong></div></div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">13</div><div class="step-title">Set Your University Name</div></div>
-  <ol class="steps">
-    <li>In the backend folder, find the file <code>.env</code> (may show as just <code>env</code>)</li>
-    <li>Right-click it → <strong>"Open with"</strong> → <strong>"Notepad"</strong></li>
-    <li>Find and change: <code>UNIVERSITY_NAME=My University</code> → your university name</li>
-    <li>Also change <code>SECRET_KEY=change-me-...</code> → any long random text you create</li>
-    <li>Press <strong>Ctrl+S</strong> to save. Close Notepad.</li>
-  </ol>
-</div>
-
-<!-- ══════════ PART 5 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 5 of 11</div>
-  <div class="part-title">Start the Chatbot!</div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">14</div><div class="step-title">Launch the Server</div></div>
-  <p>In the <code>backend</code> folder, <strong>double-click <code>START_SERVER.bat</code></strong>.</p>
-  <p>A black window opens and shows all 3 services starting. After ~15 seconds it will say:</p>
-  <pre><span class="highlight">✅ SERVER RUNNING</span>
-  Admin Panel : http://localhost:8000/panel/
-  Chat Widget : http://localhost:8000/widget/
-
-Press any key to open the Admin Panel...</pre>
-  <p>Press any key — the Admin Panel opens in your browser automatically.</p>
-  <div class="alert critical"><div class="alert-icon"></div><div><strong>IMPORTANT:</strong> Do NOT close this black window. The chatbot runs as long as this window is open.</div></div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">15</div><div class="step-title">Log In to the Admin Panel</div></div>
-  <p>The browser shows the login screen. Enter:</p>
-  <table>
-    <tr><th>Field</th><th>Value</th></tr>
-    <tr><td>Username</td><td><code>admin</code></td></tr>
-    <tr><td>Password</td><td><code>admin123</code></td></tr>
-  </table>
-  <p>Click <strong>Sign In</strong>. You are inside the Admin Panel! 🎉</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">16</div><div class="step-title">Change the Admin Password — DO THIS NOW</div></div>
-  <div class="alert critical"><div class="alert-icon"></div><div>Do this before anything else. The default password is public knowledge.</div></div>
-  <ol class="steps">
-    <li>In the left sidebar, click <strong>⚙️ Settings</strong></li>
-    <li>Scroll to <strong>"Change My Password"</strong></li>
-    <li>Enter current password: <code>admin123</code></li>
-    <li>Enter a new strong password (write it down!)</li>
-    <li>Click <strong>Update Password</strong></li>
-  </ol>
-</div>
-
-<!-- ══════════ PART 6 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 6 of 11</div>
-  <div class="part-title">Add University Knowledge to the Bot</div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">17</div><div class="step-title">Add Text Knowledge</div></div>
-  <ol class="steps">
-    <li>In the Admin Panel, click <strong>📚 Knowledge Base</strong> in the left sidebar</li>
-    <li>Click <strong>"+ Add Knowledge"</strong></li>
-    <li>Make sure the <strong>"Paste Text"</strong> tab is selected</li>
-    <li>Fill in a <strong>Name</strong> (e.g. <em>Admission Requirements 2025</em>)</li>
-    <li>In the <strong>Content</strong> box, paste or type university information</li>
-    <li>Click <strong>Upload Text</strong> ✅</li>
-  </ol>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">18</div><div class="step-title">Upload a PDF File</div></div>
-  <ol class="steps">
-    <li>In Knowledge Base, click <strong>"+ Add Knowledge"</strong> → click <strong>"Upload File"</strong> tab</li>
-    <li>Enter a Name, then click the file zone to select a <code>.pdf</code> or <code>.txt</code> file</li>
-    <li>Click <strong>Upload File</strong> ✅</li>
-  </ol>
-  <table>
-    <tr><th>What to Upload</th><th>Students Can Ask About</th></tr>
-    <tr><td>Admission brochure</td><td>Eligibility, dates, process</td></tr>
-    <tr><td>Fee structure PDF</td><td>Fees, payment, scholarships</td></tr>
-    <tr><td>Course catalog</td><td>Programs, subjects, credits</td></tr>
-    <tr><td>Hostel rules PDF</td><td>Hostel info, fees, rules</td></tr>
-    <tr><td>Academic calendar</td><td>Exam dates, holidays</td></tr>
-    <tr><td>Faculty list</td><td>Teachers, departments, contacts</td></tr>
-  </table>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">19</div><div class="step-title">Test the Chatbot</div></div>
-  <ol class="steps">
-    <li>Open a new browser tab</li>
-    <li>Go to: <code>http://localhost:8000/widget/</code></li>
-    <li>Type a question like: <em>"What documents do I need for admission?"</em></li>
-    <li>The bot should answer based on what you uploaded! 🎉</li>
-  </ol>
-  <div class="alert tip"><div class="alert-icon"></div><div>If the bot says "I can only answer university questions" — that topic isn't in the knowledge base yet. Add it in Step 17.</div></div>
-</div>
-
-<!-- ══════════ PART 7 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 7 of 11</div>
-  <div class="part-title">Enable Internet Access (Access From Anywhere in the World)</div>
-</div>
-
-<p style="margin-bottom:16px; color:#334155;">Right now the chatbot only works on the same WiFi. This part makes it accessible from anywhere — 4G, 5G, home internet, abroad — for free using Cloudflare Tunnel.</p>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">20</div><div class="step-title">Create a Free Cloudflare Account</div></div>
-  <ol class="steps">
-    <li>Go to: <code>https://cloudflare.com</code></li>
-    <li>Click <strong>Sign Up</strong> → enter your email → create a password</li>
-    <li>Check your email inbox → click the verification link</li>
-    <li>You are now logged in to Cloudflare ✅</li>
-  </ol>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">21</div><div class="step-title">Run the Cloudflare Setup Wizard</div></div>
-  <p>Make sure <code>START_SERVER.bat</code> is running. Then go to the <code>backend</code> folder and <strong>double-click <code>SETUP_CLOUDFLARE.bat</code></strong>.</p>
-  <p>The wizard guides you through 4 automatic steps:</p>
-  <table>
-    <tr><th>Wizard Step</th><th>What Happens</th><th>What You Do</th></tr>
-    <tr><td>A — Install cloudflared</td><td>Downloads the Cloudflare tool</td><td>Just wait</td></tr>
-    <tr><td>B — Log in to Cloudflare</td><td>Opens browser for authorization</td><td>Log in → click <strong>Authorize</strong></td></tr>
-    <tr><td>C — Create tunnel</td><td>Creates a secure connection</td><td>Just wait</td></tr>
-    <tr><td>D — Choose URL type</td><td>Asks how people will access the bot</td><td>Press 1 or 2 (see below)</td></tr>
-  </table>
-
-  <p style="margin-top:12px"><strong>Step D — Choosing your URL:</strong></p>
-  <table>
-    <tr><th>Option</th><th>URL Example</th><th>Best For</th></tr>
-    <tr><td><strong>Press 1</strong> — Random URL (easiest)</td><td><code>https://abc123.trycloudflare.com</code></td><td>Getting started fast. URL changes on restart.</td></tr>
-    <tr><td><strong>Press 2</strong> — Your own domain</td><td><code>https://chat.youruniversity.edu</code></td><td>Permanent, professional. Needs your domain.</td></tr>
-  </table>
-  <div class="alert tip"><div class="alert-icon"></div><div>If you don't own a domain, press 1. You can always upgrade to Option 2 later.</div></div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">22</div><div class="step-title">Test Internet Access from Your Phone</div></div>
-  <ol class="steps">
-    <li>On your <strong>mobile phone</strong> — turn WiFi <strong>OFF</strong>, use 4G/5G data</li>
-    <li>Open browser on your phone</li>
-    <li>Go to your public URL + <code>/panel/</code>. For example:<br>
-        <code>https://abc123.trycloudflare.com/panel/</code></li>
-    <li>You should see the Admin Panel login screen! 🎉</li>
-  </ol>
-</div>
-
-<!-- ══════════ PART 8 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 8 of 11</div>
-  <div class="part-title">Create Teacher &amp; Student Accounts</div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">23</div><div class="step-title">Understanding the Three Roles</div></div>
-  <table>
-    <tr><th>Role</th><th>Can Do</th><th>Needs Account?</th></tr>
-    <tr><td><span class="badge badge-red">Admin</span></td><td>Everything: users, knowledge, settings, logs</td><td>Yes — you (admin)</td></tr>
-    <tr><td><span class="badge badge-blue">Teacher</span></td><td>Upload &amp; delete knowledge only</td><td>Yes — created by admin</td></tr>
-    <tr><td><span class="badge badge-green">Student</span></td><td>Ask questions via chat widget</td><td>No — open to all</td></tr>
-  </table>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">24</div><div class="step-title">Create a Teacher Account</div></div>
-  <ol class="steps">
-    <li>In Admin Panel → click <strong>👥 Users</strong> → click <strong>"+ Add User"</strong></li>
-    <li>Fill in username, full name, email, password</li>
-    <li>Set <strong>Role</strong> to <strong>"Teacher"</strong></li>
-    <li>Click <strong>Create User</strong> ✅</li>
-    <li>Share the username + password with the teacher. Tell them to change their password after first login.</li>
-  </ol>
-  <div class="alert info"><div class="alert-icon"></div><div>Teachers log in at your Admin Panel URL from any device, from anywhere in the world.</div></div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">25</div><div class="step-title">Students Need No Account</div></div>
-  <p>Students visit the university website → click the 🎓 floating button → chat. No login, no registration needed.</p>
-</div>
-
-<!-- ══════════ PART 9 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 9 of 11</div>
-  <div class="part-title">Embed the Chatbot on Your University Website</div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">26</div><div class="step-title">Get Your Public Chatbot URL</div></div>
-  <p>From Part 7, you have a public URL. Write it here: ______________________________</p>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">27</div><div class="step-title">Add the Chat Button to the Website</div></div>
-  <p>Give this one line of code to your <strong>website developer</strong> or <strong>web admin</strong>. They paste it into every page on the university website, just before the <code>&lt;/body&gt;</code> tag:</p>
-  <pre>&lt;script src="https://YOUR-PUBLIC-URL/widget/embed.js"&gt;&lt;/script&gt;</pre>
-  <p>Example:</p>
-  <pre>&lt;script src="https://chat.myuniversity.edu/widget/embed.js"&gt;&lt;/script&gt;</pre>
-  <p><strong>Result:</strong> A 🎓 floating button appears on every page. Visitors click it → a chat window opens. ✅</p>
-</div>
-
-<!-- ══════════ PART 10 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 10 of 11</div>
-  <div class="part-title">Make the Chatbot Run Automatically 24/7</div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">28</div><div class="step-title">Enable Windows Auto Login</div></div>
-  <ol class="steps">
-    <li>Press <strong>⊞ Windows key + R</strong> → type <code>netplwiz</code> → press Enter</li>
-    <li>Click your username to select it</li>
-    <li><strong>Uncheck</strong> the box: "Users must enter a username and password..."</li>
-    <li>Click <strong>Apply</strong> → enter your Windows password → click <strong>OK</strong></li>
-  </ol>
-  <div class="alert tip"><div class="alert-icon"></div><div>Now the PC boots straight to the desktop without anyone needing to type a password.</div></div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">29</div><div class="step-title">Add the Chatbot to Windows Startup</div></div>
-  <ol class="steps">
-    <li>Press <strong>⊞ Windows key + R</strong> → type <code>shell:startup</code> → press Enter<br>(A special folder opens)</li>
-    <li>Open a second File Explorer: press <strong>⊞ Windows key + E</strong><br>Navigate to the <code>backend</code> folder</li>
-    <li><strong>Right-click</strong> <code>START_SERVER.bat</code> → click <strong>"Copy"</strong></li>
-    <li>Go back to the Startup folder → <strong>right-click</strong> inside it → <strong>"Paste shortcut"</strong></li>
-  </ol>
-  <div class="alert tip"><div class="alert-icon"></div><div>Now every time Windows starts: PC auto-logs in → chatbot starts → Ollama starts → Cloudflare tunnel starts → bot is online within 30 seconds ✅</div></div>
-</div>
-
-<div class="step">
-  <div class="step-header"><div class="step-num">30</div><div class="step-title">Set PC to Never Sleep</div></div>
-  <ol class="steps">
-    <li>Press ⊞ Windows key → type <strong>Power &amp; sleep settings</strong> → press Enter</li>
-    <li>Under <strong>"Sleep"</strong>: Set "When plugged in, sleep after" → <strong>Never</strong></li>
-    <li>Under <strong>"Screen"</strong>: Set "When plugged in, turn off screen after" → <strong>Never</strong></li>
-  </ol>
-</div>
-
-<!-- ══════════ PART 11 ══════════ -->
-<div class="part-header">
-  <div class="part-num">Part 11 of 11</div>
-  <div class="part-title">Daily Usage &amp; Quick Reference</div>
-</div>
-
-<table>
-  <tr><th>Task</th><th>How To Do It</th></tr>
-  <tr><td>Start the chatbot manually</td><td>Double-click <code>START_SERVER.bat</code> in backend folder</td></tr>
-  <tr><td>Add new university knowledge</td><td>Admin Panel → 📚 Knowledge Base → + Add Knowledge</td></tr>
-  <tr><td>See what students asked</td><td>Admin Panel → 💬 Chat Logs</td></tr>
-  <tr><td>Add a new teacher</td><td>Admin Panel → 👥 Users → + Add User (set role = Teacher)</td></tr>
-  <tr><td>Change system prompt / bot personality</td><td>Admin Panel → ⚙️ Settings → Bot System Prompt</td></tr>
-  <tr><td>Change university name</td><td>Admin Panel → ⚙️ Settings → General Configuration</td></tr>
-  <tr><td>Reset a teacher's password</td><td>Deactivate their account → create new one</td></tr>
-</table>
-
-<hr>
-
-<div class="ref-card">
-  <div class="rc-title">📌 QUICK REFERENCE CARD — Print &amp; Keep This!</div>
-  <br>
-  <span class="rc-label">BACKEND FOLDER: </span><span class="rc-val">C:\Users\Aashutosh Singh Rawa\.gemini\antigravity\scratch\university-chatbot\backend\</span><br>
-  <br>
-  <span class="rc-label">START CHATBOT:  </span><span class="rc-val">Double-click START_SERVER.bat</span><br>
-  <span class="rc-label">SETUP (1st time):</span><span class="rc-val">Double-click SETUP.bat</span><br>
-  <span class="rc-label">CLOUDFLARE:     </span><span class="rc-val">Double-click SETUP_CLOUDFLARE.bat</span><br>
-  <br>
-  <span class="rc-label">ADMIN PANEL (local):   </span><span class="rc-val">http://localhost:8000/panel/</span><br>
-  <span class="rc-label">ADMIN PANEL (internet):</span><span class="rc-val">https://YOUR-CLOUDFLARE-URL/panel/</span><br>
-  <span class="rc-label">CHAT WIDGET TEST:      </span><span class="rc-val">http://localhost:8000/widget/</span><br>
-  <br>
-  <span class="rc-label">DEFAULT LOGIN (change immediately!): </span><span class="rc-val">admin / admin123</span><br>
-  <br>
-  <span class="rc-label">EMBED CODE FOR WEBSITE:</span><br>
-  <span class="rc-val">&lt;script src="https://YOUR-URL/widget/embed.js"&gt;&lt;/script&gt;</span>
-</div>
-
-<hr>
-
-<h2 style="font-size:16px; margin-bottom:16px; color:#1d4ed8;">🔧 Troubleshooting</h2>
-<table>
-  <tr><th>Problem</th><th>Solution</th></tr>
-  <tr><td>SETUP.bat closes immediately</td><td>Right-click → Run as administrator</td></tr>
-  <tr><td>"Python is not recognized"</td><td>Re-install Python, tick "Add Python to PATH"</td></tr>
-  <tr><td>Ollama not running</td><td>Click 🦙 icon in system tray, or open Ollama from Start Menu</td></tr>
-  <tr><td>Server not starting</td><td>Restart PC and double-click START_SERVER.bat again</td></tr>
-  <tr><td>Admin panel won't open</td><td>Make sure START_SERVER.bat black window is still open</td></tr>
-  <tr><td>Bot gives wrong answers</td><td>Upload more relevant knowledge in Knowledge Base</td></tr>
-  <tr><td>Bot says "I can only answer university questions"</td><td>That topic isn't uploaded yet — add it in Knowledge Base</td></tr>
-  <tr><td>Can't access from phone (4G)</td><td>Cloudflare not set up — run SETUP_CLOUDFLARE.bat</td></tr>
-  <tr><td>Cloudflare URL keeps changing</td><td>Use Option 2 (custom domain) in SETUP_CLOUDFLARE.bat</td></tr>
-  <tr><td>PC restarted and bot stopped</td><td>Check Step 29 (startup shortcut) is set up correctly</td></tr>
-  <tr><td>Teachers can't log in</td><td>Check username/password in Admin Panel → Users</td></tr>
-</table>
-
-<hr>
-
-<h2 style="font-size:16px; margin-bottom:12px; color:#1d4ed8;">🔒 Security Checklist</h2>
-<ul class="checks">
-  <li>Changed admin password from <code>admin123</code></li>
-  <li>Set a custom <code>SECRET_KEY</code> in the <code>.env</code> file</li>
-  <li>Using Cloudflare Tunnel (not open router ports)</li>
-  <li>Teachers change their passwords after first login</li>
-  <li>PC is in a physically secure, always-powered location</li>
-  <li>PC is set to never sleep (Step 30)</li>
-  <li>Startup shortcut is set (Step 29)</li>
-</ul>
-
-<hr>
-<p style="text-align:center; color:#94a3b8; font-size:11px; margin-top:32px;">
-  🎓 University AI Chatbot — Setup Guide &nbsp;|&nbsp; Generated May 2026<br>
-  Built with: Python · FastAPI · Ollama · ChromaDB · Cloudflare Tunnel
-</p>
-
-<!-- ── PRINT TO PDF BUTTON (only shows on screen, not in print) ── -->
-<div style="position:fixed; bottom:24px; right:24px; z-index:999; print-color-adjust:exact;">
-  <button onclick="window.print()" style="
-    background: linear-gradient(135deg, #1d4ed8, #4338ca);
-    color: white; border: none; border-radius: 12px;
-    padding: 14px 22px; font-size: 15px; font-weight: 600;
-    cursor: pointer; box-shadow: 0 4px 20px rgba(29,78,216,0.4);
-    font-family: Inter, sans-serif;
-    display: flex; align-items: center; gap: 8px;
-  ">
-    🖨️ Save as PDF / Print
-  </button>
-</div>
+  <!-- SECTION 5: PRINTABLE QUICK REFERENCE -->
+  <div class="ref-card">
+    <h2>📌 TMU CampusConnect Quick Reference</h2>
+    
+    <div class="ref-item">
+      <span class="ref-label">ONE-CLICK INSTALLER:</span>
+      <span class="ref-val">ONE_CLICK_INSTALLER.bat</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">LOCAL CHAT WIDGET:</span>
+      <span class="ref-val">http://localhost:8000/widget/</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">LOCAL ADMIN PANEL:</span>
+      <span class="ref-val">http://localhost:8000/panel/</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">PUBLIC NGROK TUNNEL:</span>
+      <span class="ref-val">https://unstuffed-flyover-answering.ngrok-free.dev/</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">DEFAULT ADMIN LOGIN:</span>
+      <span class="ref-val">admin / admin123</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">OLLAMA LOCAL SERVER:</span>
+      <span class="ref-val">http://localhost:11434</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">ACTIVE MODELS:</span>
+      <span class="ref-val">llama3.2:3b &amp; mxbai-embed-large</span>
+    </div>
+  </div>
 
 </body>
 </html>

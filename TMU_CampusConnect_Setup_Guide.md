@@ -1,8 +1,9 @@
-# 🎓 TMU CampusConnect — Complete Setup Guide
+# 🎓 TMU CampusConnect — Complete Setup & Deployment Guide
 ## For Teerthanker Mahaveer University | Step-by-Step for Beginners
 
-> **This guide assumes you only know how to turn on a Windows PC.**
-> Follow every step in order. Do not skip anything.
+> ⚡ **FAST TRACK (RECOMMENDED):**
+> You do **not** need to do manual steps anymore! Simply double-click **`ONE_CLICK_INSTALLER.bat`**.
+> It opens the **TMU CampusConnect Universal Deployment Hub** with TMU Amber theme and automated system diagnostics. It will automatically detect or install Python 3.12, Ollama, download local models, heal dependencies, and provide a **Quick Launch & Deploy Hub** tab with one-click buttons.
 
 ---
 

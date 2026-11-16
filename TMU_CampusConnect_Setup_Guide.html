@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TMU CampusConnect – Complete Setup &amp; Deployment Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent:     #FFB106;       /* TMU Amber brand color */
+    --accent2:    #e69500;       /* Deep amber for gradients/hover */
+    --accent-red: #C0392B;       /* TMU red from logo outer ring */
+    --bg:         #F5F2EB;       /* Cloudy warm white */
+    --card-bg:    #FFFFFF;       /* Pure white card container */
+    --border:     rgba(220,180,50,0.3);
+    --border-subtle: #E8E5DD;
+    --text:       #2D1A00;       /* Dark brown text for high readability */
+    --text-muted: #7A5C1E;       /* Muted amber-brown */
+    --radius:     14px;
+    --shadow:     0 4px 20px rgba(45,26,0,0.06);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    font-size: 13.5px;
+    line-height: 1.7;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  /* ── Cover Page ─────────────────────────── */
+  .cover {
+    text-align: center;
+    padding: 60px 40px 50px;
+    background: linear-gradient(135deg, #FFB106 0%, #e69500 50%, #c97d00 100%);
+    border-radius: 20px;
+    color: #fff;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 30px rgba(230,149,0,0.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+  }
+  .cover-logo {
+    width: 90px; height: 90px;
+    background: #fff;
+    border-radius: 50%;
+    padding: 6px;
+    margin: 0 auto 18px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cover-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+  .cover h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .cover .subtitle { font-size: 16px; opacity: 0.95; margin-bottom: 24px; font-weight: 400; }
+  .cover-divider { width: 70px; height: 4px; background: rgba(255,255,255,0.45); margin: 20px auto; border-radius: 2px; }
+  .cover-meta { font-size: 13px; opacity: 0.9; line-height: 2.2; }
+  .cover-meta strong { font-weight: 700; color: #fff; }
+
+  /* ── Pill Badges ── */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .badge-amber { background: #FFF3D6; color: #9A6200; border: 1px solid #FFE08A; }
+  .badge-green { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+  .badge-red   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+  .badge-blue  { background: #E0F2FE; color: #075985; border: 1px solid #BAE6FD; }
+
+  /* ── Bento Grid ── */
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .bento-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .bento-card h3 {
+    font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--accent2);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── Content Sections ── */
+  .section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 30px 32px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+  }
+  .section-title {
+    font-size: 18px; font-weight: 800; color: var(--text);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 2px solid rgba(255,177,6,0.3); padding-bottom: 10px;
+  }
+
+  /* ── Code Blocks ── */
+  pre, code {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 12px;
+  }
+  code {
+    background: #FFF5E0; color: #9A6200; padding: 2px 6px; border-radius: 4px; font-weight: 500;
+  }
+  pre {
+    background: #2D1A00; color: #FFF8E7; padding: 16px 20px; border-radius: 10px;
+    overflow-x: auto; margin: 12px 0 16px; line-height: 1.5; border-left: 4px solid var(--accent);
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px;
+  }
+  th, td {
+    padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-subtle);
+  }
+  th {
+    background: #FAF7F0; font-weight: 700; color: var(--text-muted); font-size: 11.5px; text-transform: uppercase;
+  }
+
+  /* ── Quick Reference Print Card ── */
+  .ref-card {
+    background: linear-gradient(135deg, #2D1A00 0%, #422800 100%);
+    color: #FFF8E7;
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin: 30px 0;
+    box-shadow: 0 10px 30px rgba(45,26,0,0.3);
+    border: 2px solid var(--accent);
+  }
+  .ref-card h2 { color: var(--accent); font-size: 20px; margin-bottom: 16px; font-weight: 800; }
+  .ref-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .ref-label { font-weight: 600; color: rgba(255,255,255,0.7); font-size: 12px; }
+  .ref-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #FFF; font-weight: 600; }
+
+  /* ── Step Cards ── */
+  .step-box {
+    background: #FAF8F2;
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 12px 0 16px;
+  }
+  .step-num { font-weight: 800; color: var(--accent2); font-size: 14px; margin-right: 6px; }
+
+  @media (max-width: 600px) {
+    body { padding: 20px 16px 60px; }
+    .cover { padding: 40px 20px; }
+    .section-card { padding: 20px 18px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Cover Header -->
+  <div class="cover">
+    <div class="cover-logo">
+      <img src="widget/tmu-logo.png" alt="TMU Logo" onerror="this.src='tmu-logo.png'" />
+    </div>
+    <h1>TMU CampusConnect</h1>
+    <div class="subtitle">Complete Setup, Universal Installer &amp; Deployment Manual</div>
+    <div class="cover-divider"></div>
+    <div class="cover-meta">
+      <strong>Institution:</strong> Teerthanker Mahaveer University (TMU)<br />
+      <strong>Brand Aesthetic:</strong> TMU Amber (<code>#FFB106</code>) &amp; Deep Amber (<code>#E69500</code>)<br />
+      <strong>AI Engine:</strong> LLaMA 3.2 3B &amp; mxbai-embed-large (100% On-Premise / Zero Cloud Costs)<br />
+      <strong>Permanent Ngrok Domain:</strong> <code>unstuffed-flyover-answering.ngrok-free.dev</code>
+    </div>
+  </div>
+
+  <!-- Architecture Overview Bento -->
+  <div class="bento-grid">
+    <div class="bento-card">
+      <h3>🚀 One-Click Universal Hub</h3>
+      <p>Automated zero-config Windows installer and system doctor with dual-tab navigation for 1-click health diagnostics and instant app deployment.</p>
+    </div>
+    <div class="bento-card">
+      <h3>🎨 TMU Amber Brand Widget</h3>
+      <p>Polished chatbox with official TMU logo avatar, 15-minute inactivity session clear, restart chat button, and long-press admin access.</p>
+    </div>
+    <div class="bento-card">
+      <h3>🛡️ Privacy-First RAG Pipeline</h3>
+      <p>FastAPI + ChromaDB local vector store serving 13 verified TMU knowledge documents with automatic out-of-scope Google search fallbacks.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 1: ONE-CLICK INSTALLATION -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>🚀</span>
+      <span>Method 1: One-Click Automated Installer (Recommended)</span>
+    </div>
+    <p>Everything required to run TMU CampusConnect has been fully automated into a modern, light-themed universal installer.</p>
+
+    <div class="step-box">
+      <span class="step-num">Step 1:</span>
+      <strong>Launch Installer</strong>
+      <p>Double-click <code>ONE_CLICK_INSTALLER.bat</code> in the project directory. The Pristine Light GUI will launch automatically.</p>
+    </div>
+
+    <div class="step-box">
+      <span class="step-num">Step 2:</span>
+      <strong>Click "START ONE-CLICK INSTALLATION &amp; REPAIR"</strong>
+      <p>The installer executes 6 automated diagnostic stages:</p>
+      <ul style="padding-left: 20px; margin-top: 6px;">
+        <li><strong>Stage 1:</strong> System Compatibility &amp; Windows RAM verification (12 GB detected).</li>
+        <li><strong>Stage 2:</strong> Python 3.12 Engine detection &amp; environment validation.</li>
+        <li><strong>Stage 3:</strong> Ollama AI Server daemon check &amp; automatic background startup.</li>
+        <li><strong>Stage 4:</strong> Local model verification (<code>llama3.2:3b</code> and <code>mxbai-embed-large</code>).</li>
+        <li><strong>Stage 5:</strong> Virtual environment dependency healing via <code>requirements.txt</code>.</li>
+        <li><strong>Stage 6:</strong> Preloaded TMU Knowledge Base verification (13 sources, 284 logs).</li>
+      </ul>
+    </div>
+
+    <div class="step-box">
+      <span class="step-num">Step 3:</span>
+      <strong>Switch to "Quick Launch &amp; Deploy Hub" Tab</strong>
+      <p>Use the segmented pill bar at the top to access instant launch buttons for the local server, ngrok tunnel, and browser apps.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 2: CHATBOT WIDGET FEATURES -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>💬</span>
+      <span>TMU Amber Chat Widget Features</span>
+    </div>
+    <p>The chatbox widget has been styled with TMU's official brand design and packed with production-ready student features:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Implementation Details</th>
+          <th>Student Benefit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>TMU Amber Palette</strong></td>
+          <td><code>--accent: #FFB106</code>, <code>--accent2: #e69500</code>, <code>--bg: #F5F2EB</code></td>
+          <td>Consistent, recognizable university branding.</td>
+        </tr>
+        <tr>
+          <td><strong>Official TMU Logo</strong></td>
+          <td>Embedded in header avatar and welcome banner</td>
+          <td>Instant university identity verification.</td>
+        </tr>
+        <tr>
+          <td><strong>Restart Chat Button</strong></td>
+          <td>Header restart icon (<code>#restart-btn</code>)</td>
+          <td>One-click session wipe to start a fresh topic.</td>
+        </tr>
+        <tr>
+          <td><strong>Secret Admin Shortcut</strong></td>
+          <td>Long-press (800ms) header avatar on mobile or desktop</td>
+          <td>Direct shortcut to <code>/panel/</code> without exposing public links.</td>
+        </tr>
+        <tr>
+          <td><strong>15-Min Inactivity Clear</strong></td>
+          <td>Auto-clears after 15 min idle time</td>
+          <td>Protects student privacy on shared library computers.</td>
+        </tr>
+        <tr>
+          <td><strong>Auto-Adapting Origin</strong></td>
+          <td><code>window.location.origin + '/api/chat'</code></td>
+          <td>Works identically on localhost and public ngrok URL.</td>
+        </tr>
+        <tr>
+          <td><strong>Clickable Pill Links</strong></td>
+          <td>Auto-regex converts URLs &amp; phones to pills</td>
+          <td>Tappable phone numbers and Google search links.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 3: WEBSITE INTEGRATION -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>🌐</span>
+      <span>Embedding on University Websites &amp; Portals</span>
+    </div>
+    <p>You can embed the TMU CampusConnect chatbot on any webpage or portal in 3 distinct ways:</p>
+
+    <h4 style="margin-top:16px; margin-bottom:8px; color:var(--accent2);">Option A: Standard Floating Widget (Every Webpage)</h4>
+    <p>Add this single line before the closing <code>&lt;/body&gt;</code> tag of your university website:</p>
+    <pre>&lt;!-- TMU CampusConnect Floating Assistant --&gt;
+&lt;script src="https://unstuffed-flyover-answering.ngrok-free.dev/widget/embed.js"&gt;&lt;/script&gt;</pre>
+
+    <h4 style="margin-top:20px; margin-bottom:8px; color:var(--accent2);">Option B: Left-Docked Portal Embed</h4>
+    <p>For side-panel layouts such as student ERPs or administrative dashboards:</p>
+    <pre>&lt;!-- TMU Left-Docked Embed --&gt;
+&lt;script src="https://unstuffed-flyover-answering.ngrok-free.dev/widget/embed-left.js"&gt;&lt;/script&gt;</pre>
+
+    <h4 style="margin-top:20px; margin-bottom:8px; color:var(--accent2);">Option C: Tampermonkey Userscript (portal2.tmu.ac.in)</h4>
+    <p>To inject the assistant directly onto the live TMU ERP portal without server-side access, install the pre-configured script from <code>widget/tampermonkey-tmu.user.js</code> in the Tampermonkey browser extension.</p>
+  </div>
+
+  <!-- SECTION 4: USER ROLES -->
+  <div class="section-card">
+    <div class="section-title">
+      <span>👥</span>
+      <span>User Access Levels &amp; Admin Panel</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Capabilities</th>
+          <th>Login Required?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-amber">Admin</span></td>
+          <td>Full control: Manage users, upload/delete knowledge, inspect chat logs, configure system prompt.</td>
+          <td>Yes (Pre-configured: <code>admin / admin123</code>)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-blue">Teacher</span></td>
+          <td>Upload course syllabus, FAQ documents, and manage own uploaded knowledge files.</td>
+          <td>Yes (Created by Admin)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-green">Student</span></td>
+          <td>Ask admissions, fee, syllabus, hostel, and campus queries freely.</td>
+          <td>No login required (Open access)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 5: PRINTABLE QUICK REFERENCE -->
+  <div class="ref-card">
+    <h2>📌 TMU CampusConnect Quick Reference</h2>
+    
+    <div class="ref-item">
+      <span class="ref-label">ONE-CLICK INSTALLER:</span>
+      <span class="ref-val">ONE_CLICK_INSTALLER.bat</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">LOCAL CHAT WIDGET:</span>
+      <span class="ref-val">http://localhost:8000/widget/</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">LOCAL ADMIN PANEL:</span>
+      <span class="ref-val">http://localhost:8000/panel/</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">PUBLIC NGROK TUNNEL:</span>
+      <span class="ref-val">https://unstuffed-flyover-answering.ngrok-free.dev/</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">DEFAULT ADMIN LOGIN:</span>
+      <span class="ref-val">admin / admin123</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">OLLAMA LOCAL SERVER:</span>
+      <span class="ref-val">http://localhost:11434</span>
+    </div>
+    <div class="ref-item">
+      <span class="ref-label">ACTIVE MODELS:</span>
+      <span class="ref-val">llama3.2:3b &amp; mxbai-embed-large</span>
+    </div>
+  </div>
+
+</body>
+</html>
